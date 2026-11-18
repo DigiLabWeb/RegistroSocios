@@ -813,6 +813,14 @@ function componerDireccion(d) {
   if (!d.calle) return d.direccion || '';
   return `${d.calle} ${d.numExt || ''}${d.numInt ? ' Int. ' + d.numInt : ''}, Col. ${d.colonia || ''}, C.P. ${d.cp || ''}, ${d.municipio || ''}, ${d.estado || ''}`;
 }
+function faltantes(s) {
+  const f = [];
+  if (!s.nacimiento) f.push('fecha de nacimiento');
+  if (!s.curp) f.push('CURP');
+  if (!s.concesion) f.push('concesión');
+  if (!direccionCompleta(s)) f.push('dirección');
+  return f;
+}
 function direccionCompleta(s) { return Object.keys(DIR_REQ).every(k => s[k]) && /^\d{5}$/.test(s.cp || ''); }
 function titulo(s) {
   const minus = ['de', 'del', 'la', 'las', 'los', 'y', 'e'];
@@ -903,6 +911,8 @@ async function load() {
   $('list').innerHTML = '<div class="loader"><i></i><i></i><i></i></div>';
   try {
     socios = await api.list();
+    // Si la hoja quitó el cero inicial del C.P. (2160 → 02160), se recupera
+    socios.forEach(x => { if (/^\d{1,4}$/.test(x.cp || '')) x.cp = x.cp.padStart(5, '0'); });
     socios.sort((a, b) => String(a.numero).localeCompare(String(b.numero), 'es', { numeric: true }));
     render();
   } catch (err) {
@@ -953,7 +963,7 @@ function render() {
         ${s.concesion
           ? `<div class="plate"><small>CONCESIÓN</small><b>${esc(s.concesion)}</b></div>`
           : `<div class="plate none"><b>Sin concesión</b></div>`}
-        <div class="meta-row">${ineChip(s)}${FILTROS.incompletos.test(s) ? '<span class="st warn">Datos incompletos</span>' : ''}</div>
+        <div class="meta-row">${ineChip(s)}${FILTROS.incompletos.test(s) ? `<span class="st warn" title="Falta: ${esc(faltantes(s).join(', '))}">Falta: ${esc(faltantes(s)[0])}${faltantes(s).length > 1 ? ' +' + (faltantes(s).length - 1) : ''}</span>` : ''}</div>
       </div>
       <div class="card-actions">
         <button onclick="event.stopPropagation();openForm('${esc(s.id)}')" aria-label="Editar">
