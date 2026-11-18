@@ -265,6 +265,10 @@
   .reading .ine-img::after{content:'';position:absolute;left:0;right:0;height:3px;background:linear-gradient(90deg,transparent,var(--cyan),transparent);box-shadow:0 0 12px var(--cyan);animation:scanline 1.4s ease-in-out infinite}
   .reading .ine-img::before{content:'';position:absolute;inset:0;background:rgba(11,31,34,.35);z-index:1}
 
+  .ine-match{margin-top:10px;border-radius:12px;padding:8px 12px;font-weight:800;font-size:.85rem;text-align:center}
+  .ine-match.ok{background:#e3f7ec;color:#1a7f4b}
+  .ine-match.bad{background:#fdeaea;color:#c0392b}
+  .ine-match.info{background:var(--foam);color:var(--turq-deep)}
   .ine-msg{margin-top:12px;border-radius:16px;padding:12px 14px;font-size:.88rem;line-height:1.4;border:2px solid}
   .ine-msg b.t{display:block;font-size:.95rem;margin-bottom:4px}
   .ine-msg ul{margin:6px 0 0 18px}
@@ -467,6 +471,7 @@
         <span class="ine-lbl">Reverso <span class="st">Pendiente</span></span>
       </button>
     </div>
+    <div class="ine-match" id="ineMatch" hidden></div>
     <div class="ine-msg" id="ineMsg" hidden></div>
 
     <div class="sec"><span class="sec-n">2</span> Datos del socio</div>
@@ -949,7 +954,7 @@ function openForm(id = null) {
       ? { img: null, cls: 'has ' + (s.ineEstado === 'ok' ? 'ok' : 'warn'), st: s.ineEstado === 'ok' ? 'Guardada ✓' : 'Guardada', stCls: s.ineEstado === 'ok' ? 'ok' : 'warn' }
       : { img: null });
   }
-  showMsg('', '');
+  showMsg('', ''); pintarCoincidencia(null);
   openOv('formOv');
 }
 
@@ -1147,7 +1152,9 @@ function leerFrente(texto) {
     if (curpFecha(c.curp) === c.nacimiento) score++;
     else notas.push('La fecha de nacimiento no coincide con la CURP: revísala.');
   } else if (c.curp && !c.nacimiento) { c.nacimiento = curpFecha(c.curp); notas.push('La fecha se tomó de la CURP.'); }
-  const estado = score >= 5 && c.nombre && (c.curp || c.nacimiento) ? 'ok' : score >= 3 ? 'parcial' : 'ilegible';
+  // Se aprueba si se pueden leer los datos: al menos 2 datos clave (o el encabezado INE + 1 dato)
+  const claves = [c.nombre, c.curp, c.nacimiento, c.claveElector].filter(Boolean).length;
+  const estado = claves >= 2 || (marca && claves >= 1) ? 'ok' : (marca || claves || c.domicilio) ? 'parcial' : 'ilegible';
   return { estado, campos: c, notas, score, marca };
 }
 function leerReverso(texto) {
@@ -1155,13 +1162,13 @@ function leerReverso(texto) {
   const ls = T.split('\n').filter(Boolean);
   const c = {}; let score = 0;
   if (ls.some(l => /^IDMEX/.test(l))) score++;
-  for (const l of ls) { const m = l.match(/(\d{6})\d[MF<]\d{6}/); if (m) { c.yymmdd = m[1]; score++; break; } }
+  for (const l of ls) { const m = l.match(/(\d{6})\d([MF<])\d{6}/); if (m) { c.yymmdd = m[1]; c.sexo = m[2]; score++; break; } }
   for (const l of ls) {
     if (/^IDMEX/.test(l) || !/<</.test(l) || !/^[A-Z<]+$/.test(l)) continue;
     const [ap, nom] = l.split(/<<+/);
     if (ap && nom) { c.nombre = titulo(nom.replace(/</g, ' ') + ' ' + ap.replace(/</g, ' ')); score++; break; }
   }
-  return { estado: score >= 3 ? 'ok' : score >= 1 ? 'parcial' : 'ilegible', campos: c, score };
+  return { estado: c.nombre || c.yymmdd ? 'ok' : score >= 1 ? 'parcial' : 'ilegible', campos: c, score };
 }
 
 function autollenar(campos, soloVacios = false) {
@@ -1238,14 +1245,12 @@ async function procesarIne(lado, canvas0, srcWidth) {
 
   const campos = { ...res.campos };
   if (lado === 'reverso') {   // del reverso solo usamos el nombre y la fecha (zona MRZ)
-    const fFront = $('f_nacimiento').value || ine.frente.campos?.nacimiento || '';
+    ine.reverso.mrz = { nombre: r.campos.nombre, yymmdd: r.campos.yymmdd, sexo: r.campos.sexo };
     if (r.campos.yymmdd) {
       const yy = +r.campos.yymmdd.slice(0, 2), ahora = new Date().getFullYear() % 100;
-      const fecha = `${yy > ahora ? '19' : '20'}${r.campos.yymmdd.slice(0, 2)}-${r.campos.yymmdd.slice(2, 4)}-${r.campos.yymmdd.slice(4, 6)}`;
-      if (fFront && fFront !== fecha) res.notas = ['La fecha del reverso no coincide con la del frente.'];
-      else campos.nacimiento = fecha;
+      campos.nacimiento = `${yy > ahora ? '19' : '20'}${r.campos.yymmdd.slice(0, 2)}-${r.campos.yymmdd.slice(2, 4)}-${r.campos.yymmdd.slice(4, 6)}`;
     }
-    delete campos.yymmdd;
+    delete campos.yymmdd; delete campos.sexo;
   }
   ine[lado].campos = campos;
   const llenos = autollenar(campos, lado === 'reverso');
@@ -1261,17 +1266,73 @@ async function procesarIne(lado, canvas0, srcWidth) {
   const notas = [...(res.notas || [])];
   const consejos = local.issues.length ? local.issues : ['Busca buena luz, sin reflejos', 'Que la credencial llene el marco', 'Mantén el teléfono quieto'];
 
+  let cls, html;
   if (res.estado === 'ok') {
     setSlot(lado, { cls: 'has ok', st: 'Leída ✓', stCls: 'ok' });
     if (girada) notas.unshift('La imagen se enderezó automáticamente.');
-    showMsg('ok', `<b class="t">✓ ${lado === 'frente' ? 'Frente' : 'Reverso'} leído correctamente</b>${llenos.length ? 'Se llenaron los campos marcados con <b>INE</b>. Revísalos antes de guardar.' : 'Los datos coinciden con lo capturado.'}<div class="det">${det}</div>${notas.length ? `<ul>${notas.map(n => `<li>${esc(n)}</li>`).join('')}</ul>` : ''}${lado === 'frente' && !ine.reverso.data && !ine.reverso.existing ? '<br>Ahora escanea el <b>reverso</b>.' : ''}`);
+    const falta = lado === 'frente' ? !ine.reverso.data && !ine.reverso.existing : !ine.frente.data && !ine.frente.existing;
+    cls = 'ok';
+    html = `<b class="t">✓ ${lado === 'frente' ? 'Frente' : 'Reverso'} leído correctamente</b>${llenos.length ? 'Se llenaron los campos marcados con <b>INE</b>. Revísalos antes de guardar.' : ''}<div class="det">${det}</div>${notas.length ? `<ul>${notas.map(n => `<li>${esc(n)}</li>`).join('')}</ul>` : ''}${falta ? `<br>Ahora escanea el <b>${lado === 'frente' ? 'reverso' : 'frente'}</b>.` : ''}`;
   } else if (res.estado === 'parcial') {
     setSlot(lado, { cls: 'has warn', st: 'Lectura parcial', stCls: 'warn' });
-    showMsg('warn', `<b class="t">⚠ Solo se leyó una parte de ${nombreLado}</b>Revisa los datos o vuelve a escanear.${det ? `<div class="det">${det}</div>` : ''}<ul>${[...notas, ...consejos].map(n => `<li>${esc(n)}</li>`).join('')}</ul>`);
+    cls = 'warn';
+    html = `<b class="t">⚠ Solo se leyó una parte de ${nombreLado}</b>Revisa los datos o vuelve a escanear.${det ? `<div class="det">${det}</div>` : ''}<ul>${[...notas, ...consejos].map(n => `<li>${esc(n)}</li>`).join('')}</ul>`;
   } else {
     setSlot(lado, { cls: 'has bad', st: 'No se leyó', stCls: 'bad' });
-    showMsg('bad', `<b class="t">✕ No se pudo leer ${nombreLado} de la INE</b>${!f.marca && lado === 'frente' && !otro.score ? 'No parece una credencial INE. ' : ''}Toca la imagen para escanear de nuevo.<ul>${consejos.map(n => `<li>${esc(n)}</li>`).join('')}</ul>`);
+    cls = 'bad';
+    html = `<b class="t">✕ No se pudo leer ${nombreLado} de la INE</b>${!f.marca && lado === 'frente' && !otro.score ? 'No parece una credencial INE. ' : ''}Toca la imagen para escanear de nuevo.<ul>${consejos.map(n => `<li>${esc(n)}</li>`).join('')}</ul>`;
   }
+
+  // ¿El frente y el reverso son de la misma credencial?
+  const cmp = compararLados();
+  pintarCoincidencia(cmp);
+  if (cmp?.comparado && !cmp.coincide) {
+    cls = 'bad';
+    ['frente', 'reverso'].forEach(l => setSlot(l, { cls: 'has bad', st: 'No coincide', stCls: 'bad' }));
+    html = `<b class="t">✕ El frente y el reverso no parecen ser de la misma INE</b>Vuelve a escanear ambos lados de <b>la misma credencial</b>.${listaChecks(cmp)}`;
+  } else if (cmp?.comparado) {
+    html += `<br><b>Frente y reverso coinciden:</b>${listaChecks(cmp)}`;
+  }
+  showMsg(cls, html);
+}
+
+/* ---------- Verificación frente ↔ reverso ---------- */
+function lev(a, b) {
+  const d = Array.from({ length: a.length + 1 }, (_, i) => [i]);
+  for (let j = 1; j <= b.length; j++) d[0][j] = j;
+  for (let i = 1; i <= a.length; i++) for (let j = 1; j <= b.length; j++)
+    d[i][j] = Math.min(d[i - 1][j] + 1, d[i][j - 1] + 1, d[i - 1][j - 1] + (a[i - 1] === b[j - 1] ? 0 : 1));
+  return d[a.length][b.length];
+}
+// Compara nombres tolerando acentos, orden y pequeños errores de lectura
+function mismoNombre(a, b) {
+  const tk = x => N(x).replace(/[^A-Z ]/g, ' ').split(/\s+/).filter(t => t.length > 1);
+  const A = tk(a), B = tk(b);
+  if (!A.length || !B.length) return null;
+  const hits = A.filter(t => B.some(u => lev(t, u) <= (t.length >= 5 ? 1 : 0))).length;
+  return hits >= Math.min(2, A.length, B.length) && hits / Math.min(A.length, B.length) >= 0.66;
+}
+function compararLados() {
+  if (!ine.frente.data || !ine.reverso.data) return null;
+  const F = ine.frente.campos || {}, M = ine.reverso.mrz || {};
+  const nombreF = F.nombre || $('f_nombre').value.trim();
+  const nacF = F.nacimiento || curpFecha(F.curp) || '';
+  const checks = [];
+  if (nombreF && M.nombre) { const r = mismoNombre(nombreF, M.nombre); if (r !== null) checks.push(['Nombre', r]); }
+  if (nacF && M.yymmdd) checks.push(['Fecha de nacimiento', nacF.slice(2).replace(/-/g, '') === M.yymmdd]);
+  if (F.curp && M.sexo && M.sexo !== '<') checks.push(['Sexo', ({ H: 'M', M: 'F' })[F.curp[10]] === M.sexo]);
+  return checks.length ? { comparado: true, coincide: checks.every(c => c[1]), checks } : { comparado: false };
+}
+function listaChecks(cmp) {
+  return '<ul>' + cmp.checks.map(([k, ok]) => `<li>${ok ? '✓' : '✕'} ${k} ${ok ? 'coincide' : 'no coincide'}</li>`).join('') + '</ul>';
+}
+function pintarCoincidencia(cmp) {
+  const el = $('ineMatch');
+  if (!cmp) { el.hidden = true; return; }
+  el.hidden = false;
+  el.className = 'ine-match ' + (!cmp.comparado ? 'info' : cmp.coincide ? 'ok' : 'bad');
+  el.textContent = !cmp.comparado ? 'No hay datos suficientes para comparar frente y reverso'
+    : cmp.coincide ? '✓ Frente y reverso son de la misma INE' : '✕ Frente y reverso no coinciden';
 }
 
 function estadoIneFinal(prev) {
@@ -1279,7 +1340,9 @@ function estadoIneFinal(prev) {
   if (!F.data && !R.data) return undefined;               // no cambió
   const hasF = F.data || F.existing, hasR = R.data || R.existing;
   const fOk = F.data ? F.estado === 'ok' : prev === 'ok';
-  const rOk = R.data ? ['ok', 'parcial'].includes(R.estado) : prev === 'ok';
+  const rOk = R.data ? R.estado === 'ok' : prev === 'ok';
+  const cmp = compararLados();
+  if (cmp?.comparado && !cmp.coincide) return 'revisar';
   return hasF && hasR && fOk && rOk ? 'ok' : 'revisar';
 }
 
