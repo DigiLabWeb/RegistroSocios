@@ -314,6 +314,8 @@
   .scan-frame .tr{top:-5px;right:-5px;border-left:0;border-bottom:0;border-radius:0 18px 0 0}
   .scan-frame .bl{bottom:-5px;left:-5px;border-right:0;border-top:0;border-radius:0 0 0 18px}
   .scan-frame .br{bottom:-5px;right:-5px;border-left:0;border-top:0;border-radius:0 0 18px 0}
+  .scan-frame.vert{width:min(58vw,330px);aspect-ratio:.631;top:42%}
+  .scan-rot{justify-self:end;color:#fff;font-weight:700;background:rgba(255,255,255,.16);border-radius:999px;padding:10px 14px;font-size:.88rem}
   .scan-frame.good .c{border-color:#3ddc84}
   .scan-frame.bad .c{border-color:#ffb020}
   .scan-frame .scan-line{position:absolute;left:5%;right:5%;height:2px;background:linear-gradient(90deg,transparent,var(--cyan),transparent);box-shadow:0 0 10px var(--cyan);animation:scanline 2.4s ease-in-out infinite}
@@ -323,7 +325,7 @@
   .scan-top b{display:block;font-size:1.15rem}
   .scan-top span{font-size:.85rem;opacity:.85}
   .scan-x{width:44px;height:44px;border-radius:50%;background:rgba(255,255,255,.16);color:#fff;font-size:1.4rem;flex-shrink:0}
-  .scan-hint{position:absolute;left:50%;top:calc(45% + min(88vw,560px) / 3.17 + 22px);transform:translateX(-50%);background:rgba(11,31,34,.88);color:#fff;padding:10px 18px;border-radius:999px;font-weight:700;font-size:.92rem;white-space:nowrap;transition:background .25s}
+  .scan-hint{position:absolute;left:50%;bottom:calc(140px + env(safe-area-inset-bottom));transform:translateX(-50%);background:rgba(11,31,34,.88);color:#fff;padding:10px 18px;border-radius:999px;font-weight:700;font-size:.92rem;white-space:nowrap;transition:background .25s}
   .scan-hint.good{background:#1f9d5c}
   .scan-hint.bad{background:#b76e00}
   .scan-bottom{position:absolute;bottom:0;left:0;right:0;padding:20px 22px calc(28px + env(safe-area-inset-bottom));display:grid;grid-template-columns:1fr auto 1fr;align-items:center;background:linear-gradient(transparent,rgba(0,0,0,.55))}
@@ -512,7 +514,7 @@
   <div class="scan-bottom">
     <button class="scan-side" onclick="stopScan(); $('ineFile').click()">Subir foto</button>
     <button class="shutter" id="shutter" aria-label="Tomar foto"></button>
-    <span></span>
+    <button class="scan-rot" id="scanRot" onclick="girarMarco()">↻ Vertical</button>
   </div>
   <div class="flash" id="flash"></div>
 </div>
@@ -576,7 +578,12 @@ const demo = {
       if (String(user).toLowerCase() === 'gael' && pass === 'admin') return { ok: true, token: 'demo', user: 'gael' };
       throw new Error('Usuario o contraseña incorrectos.');
     }
-    if (action === 'leerIne') { await new Promise(r => setTimeout(r, 900)); return { ok: true, texto: DEMO_TXT[scan.lado] || '' }; }
+    if (action === 'leerIne') {
+      await new Promise(r => setTimeout(r, 700));
+      const im = await new Promise(r => { const i = new Image(); i.onload = () => r(i); i.src = arguments[1].imagen; });
+      const derecha = im.width > im.height && !(window.DEMO_DE_CABEZA && (window.DEMO_DE_CABEZA--, true));
+      return { ok: true, texto: derecha ? (DEMO_TXT[scan.lado] || '') : 'XX#@' };
+    }
     const all = this.all(), now = new Date().toISOString();
     const s0 = all.find(x => x.id === id);
     if (action === 'archivo') return { ok: true, imagen: lado === 'reverso' ? s0.ineReversoData : s0.ineFrenteData };
@@ -962,7 +969,23 @@ function stopScan() {
 }
 function hint(text, cls) {
   $('scanHint').textContent = text; $('scanHint').className = 'scan-hint ' + cls;
-  $('scanFrame').className = 'scan-frame ' + cls;
+  const f = $('scanFrame');
+  f.classList.toggle('good', cls === 'good'); f.classList.toggle('bad', cls === 'bad');
+}
+// Permite escanear la credencial "parada"; luego se endereza sola
+function girarMarco() {
+  const v = $('scanFrame').classList.toggle('vert');
+  $('scanRot').textContent = v ? '↻ Horizontal' : '↻ Vertical';
+}
+// Gira una imagen 0/90/180/270 grados
+function rotar(canvas, deg) {
+  if (!deg) return canvas;
+  const c = document.createElement('canvas'), lado = deg % 180 !== 0;
+  c.width = lado ? canvas.height : canvas.width; c.height = lado ? canvas.width : canvas.height;
+  const x = c.getContext('2d');
+  x.translate(c.width / 2, c.height / 2); x.rotate(deg * Math.PI / 180);
+  x.drawImage(canvas, -canvas.width / 2, -canvas.height / 2);
+  return c;
 }
 // Convierte el marco de la pantalla en coordenadas de la imagen de la cámara
 function frameCrop() {
@@ -1079,20 +1102,40 @@ function autollenar(campos, soloVacios = false) {
   return llenos;
 }
 
-async function procesarIne(lado, canvas, srcWidth) {
-  const data = canvas.toDataURL('image/jpeg', 0.85);
-  const local = calidad(canvas, srcWidth);
-  ine[lado] = { ...ine[lado], data, local, estado: null };
+async function procesarIne(lado, canvas0, srcWidth) {
   const nombreLado = lado === 'frente' ? 'el frente' : 'el reverso';
+  // Si la foto viene "parada" (vertical), primero se acuesta; si no se lee, se prueba al revés
+  const vertical = canvas0.height > canvas0.width;
+  const giros = vertical ? [90, 270] : [0, 180];
+  let canvas = rotar(canvas0, giros[0]);
+  let data = canvas.toDataURL('image/jpeg', 0.85);
+  const local = calidad(canvas, vertical && srcWidth ? Math.round(srcWidth * canvas0.height / canvas0.width) : srcWidth);
+  ine[lado] = { ...ine[lado], data, local, estado: null };
   setSlot(lado, { img: data, cls: 'has reading', st: 'Leyendo…', stCls: 'info' });
-  showMsg('info', `<b class="t">Leyendo ${nombreLado} de la INE…</b>Esto toma unos segundos.`);
+  showMsg('info', `<b class="t">Leyendo ${nombreLado} de la INE…</b>${vertical ? 'La foto venía vertical: se enderezó automáticamente. ' : ''}Esto toma unos segundos.`);
 
-  let texto = null, ocrOff = false;
-  try { texto = (await api.post('leerIne', { imagen: data })).texto || ''; }
-  catch (err) {
-    if (err.auth) { closeOv('formOv'); return logout(err.message); }
-    if (err.ocrOff) ocrOff = true; else texto = '';
-    if (!err.ocrOff) console.warn(err);
+  let texto = null, ocrOff = false, girada = vertical, best = null;
+  for (let i = 0; i < giros.length; i++) {
+    const c = i === 0 ? canvas : rotar(canvas0, giros[i]);
+    const d = i === 0 ? data : c.toDataURL('image/jpeg', 0.85);
+    if (i > 0) { setSlot(lado, { img: d, cls: 'has reading', st: 'Girando…', stCls: 'info' }); showMsg('info', `<b class="t">Probando con la imagen girada…</b>La credencial parecía estar de cabeza o de lado.`); }
+    let t = '';
+    try { t = (await api.post('leerIne', { imagen: d })).texto || ''; }
+    catch (err) {
+      if (err.auth) { closeOv('formOv'); return logout(err.message); }
+      if (err.ocrOff) { ocrOff = true; break; }
+      console.warn(err);
+    }
+    const fr = leerFrente(t), rv = leerReverso(t);
+    const score = Math.max(fr.score, rv.score);
+    if (!best || score > best.score) best = { c, d, t, score, giro: giros[i] };
+    const propio = lado === 'frente' ? fr : rv;
+    if (propio.estado === 'ok' || score >= 3) break;   // ya se lee bien: no hace falta girar más
+  }
+  if (best) {
+    canvas = best.c; data = best.d; texto = best.t; girada = best.giro !== 0;
+    ine[lado].data = data;
+    setSlot(lado, { img: data, cls: 'has reading', st: 'Leyendo…', stCls: 'info' });
   }
 
   if (ocrOff) {
@@ -1135,6 +1178,7 @@ async function procesarIne(lado, canvas, srcWidth) {
 
   if (res.estado === 'ok') {
     setSlot(lado, { cls: 'has ok', st: 'Leída ✓', stCls: 'ok' });
+    if (girada) notas.unshift('La imagen se enderezó automáticamente.');
     showMsg('ok', `<b class="t">✓ ${lado === 'frente' ? 'Frente' : 'Reverso'} leído correctamente</b>${llenos.length ? 'Se llenaron los campos marcados con <b>INE</b>. Revísalos antes de guardar.' : 'Los datos coinciden con lo capturado.'}<div class="det">${det}</div>${notas.length ? `<ul>${notas.map(n => `<li>${esc(n)}</li>`).join('')}</ul>` : ''}${lado === 'frente' && !ine.reverso.data && !ine.reverso.existing ? '<br>Ahora escanea el <b>reverso</b>.' : ''}`);
   } else if (res.estado === 'parcial') {
     setSlot(lado, { cls: 'has warn', st: 'Lectura parcial', stCls: 'warn' });
