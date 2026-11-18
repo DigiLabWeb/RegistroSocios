@@ -284,7 +284,25 @@
   /* --- Tarjeta: concesión, edad, INE --- */
   .meta-row{display:flex;flex-wrap:wrap;justify-content:center;gap:6px}
   .card{cursor:pointer}
-  .bday{position:relative;white-space:nowrap;background:var(--cyan);color:var(--ink);padding:2px 8px;border-radius:8px;font-size:.7rem;font-weight:800;letter-spacing:.5px}
+  .req{color:var(--coral)}
+  .addr-sum{width:100%;display:flex;align-items:center;gap:10px;background:var(--foam);border:2px solid transparent;border-radius:16px;padding:12px 14px;text-align:left;transition:border .2s,background .2s}
+  .addr-sum:hover{border-color:var(--lagoon)}
+  .addr.open .addr-sum{border-color:var(--turq);background:#fff;border-bottom-left-radius:6px;border-bottom-right-radius:6px}
+  .addr.err .addr-sum{border-color:var(--coral);background:#fff6f6}
+  .addr-txt{flex:1;min-width:0;font-weight:600;line-height:1.3}
+  .addr-txt.vacio{color:#8fb1b2;font-weight:500}
+  .addr-chev{transition:transform .25s;color:var(--turq-deep);flex-shrink:0}
+  .addr.open .addr-chev{transform:rotate(180deg)}
+  .addr-body{border:2px solid var(--turq);border-top:none;border-radius:0 0 16px 16px;padding:4px 12px 12px;margin-top:-4px;animation:rise .2s ease}
+  .addr-body .lf{margin-top:10px}
+  .addr-body .inp input,.addr-body .inp select{padding:11px 13px;font-size:.98rem}
+  .inp select{flex:1;min-width:0;border:none;background:transparent;padding:14px 16px;font-size:1.05rem;font-family:inherit;color:var(--ink);outline:none;appearance:none;-webkit-appearance:none}
+  .row3{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:10px}
+  .lf.bad .inp{border-color:var(--coral);background:#fff6f6}
+  .lf .msg{display:none;color:#c0392b;font-size:.78rem;font-weight:700;margin:4px 0 0 4px}
+  .lf.bad .msg{display:block}
+  .addr-foot{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-top:12px;flex-wrap:wrap}
+  .linkbtn{color:var(--turq-deep);font-weight:800;font-size:.85rem;text-decoration:underline;text-underline-offset:3px}
 
   /* --- Detalle --- */
   .det-head{display:flex;align-items:center;gap:14px;margin-bottom:6px}
@@ -475,7 +493,31 @@
       <div class="lf" id="lf_nacimiento"><label for="f_nacimiento">Fecha de nacimiento <span class="tagauto">INE</span></label><div class="inp"><input id="f_nacimiento" type="date"></div></div>
       <div class="lf upper" id="lf_curp"><label for="f_curp">CURP <span class="tagauto">INE</span></label><div class="inp"><input id="f_curp" maxlength="18" placeholder="18 caracteres" spellcheck="false"></div></div>
     </div>
-    <div class="lf" id="lf_direccion"><label for="f_direccion">Dirección <span class="tagauto">INE</span></label><div class="inp"><textarea class="ta" id="f_direccion" rows="2" placeholder="Calle, número, colonia, C.P., municipio"></textarea></div></div>
+    <div class="lf addr" id="addr">
+      <label>Dirección <span class="req">*</span></label>
+      <button type="button" class="addr-sum" id="addrSum" onclick="toggleAddr()">
+        <span class="addr-txt vacio" id="addrTxt">Toca para capturar la dirección</span>
+        <span class="st" id="addrSt">Pendiente</span>
+        <svg class="addr-chev" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>
+      </button>
+      <div class="addr-body" id="addrBody" hidden>
+        <div class="lf" id="lf_calle"><label for="f_calle">Calle <span class="req">*</span></label><div class="inp"><input id="f_calle" placeholder="Ej. Calle 10 Norte" autocapitalize="words"></div><span class="msg"></span></div>
+        <div class="row3">
+          <div class="lf upper" id="lf_numExt"><label for="f_numExt">Núm. exterior <span class="req">*</span></label><div class="inp"><input id="f_numExt" placeholder="245 o S/N"></div><span class="msg"></span></div>
+          <div class="lf upper" id="lf_numInt"><label for="f_numInt">Núm. interior</label><div class="inp"><input id="f_numInt" placeholder="Opcional"></div><span class="msg"></span></div>
+        </div>
+        <div class="lf" id="lf_colonia"><label for="f_colonia">Colonia <span class="req">*</span></label><div class="inp"><input id="f_colonia" placeholder="Ej. Centro" autocapitalize="words"></div><span class="msg"></span></div>
+        <div class="row3">
+          <div class="lf mono" id="lf_cp"><label for="f_cp">C.P. <span class="req">*</span></label><div class="inp"><input id="f_cp" inputmode="numeric" maxlength="5" placeholder="77710"></div><span class="msg"></span></div>
+          <div class="lf" id="lf_estado"><label for="f_estado">Estado <span class="req">*</span></label><div class="inp"><select id="f_estado"></select></div><span class="msg"></span></div>
+        </div>
+        <div class="lf" id="lf_municipio"><label for="f_municipio">Municipio <span class="req">*</span></label><div class="inp"><input id="f_municipio" placeholder="Ej. Solidaridad" autocapitalize="words"></div><span class="msg"></span></div>
+        <div class="addr-foot">
+          <button type="button" class="linkbtn" id="addrIne" hidden onclick="usarDireccionIne()">Copiar la dirección de la INE</button>
+          <button type="button" class="btn btn-soft" style="padding:9px 18px;margin-left:auto" onclick="toggleAddr(false)">Listo</button>
+        </div>
+      </div>
+    </div>
     <div class="lf upper" id="lf_claveElector"><label for="f_claveElector">Clave de elector <span class="tagauto">INE</span></label><div class="inp"><input id="f_claveElector" maxlength="18" placeholder="Se llena al escanear" spellcheck="false"></div></div>
 
     <div class="sheet-actions">
@@ -526,7 +568,7 @@
 <script>
 /* ================= CONFIGURACIÓN ================= */
 const CONFIG = {
-  API_URL: 'https://script.google.com/macros/s/AKfycbzIi09fQE5SWSdGBBMZ5wdZgAxgTl2wo0I3znN91sOOEYz7oAEcVzvODQvDQnhoYxI/exec'
+  API_URL: 'https://script.google.com/macros/s/AKfycbxfMg0juQpReeJsknLynBZL1YRl1U_aPndnp5ihxo6j-cSdWD4mF5tN7SKoUp5br8U/exec'
 };
 // Usuarios y contraseñas viven en Code.gs (no aquí).
 
@@ -592,13 +634,14 @@ const demo = {
     const n = v => String(v || '').toUpperCase().replace(/[\s-]/g, '');
     if (!data.nombre) throw new Error('El nombre es obligatorio.');
     if (!data.numero) throw new Error('El número de socio es obligatorio.');
+    if (DIR_KEYS.some(k => DIR_REQ[k] && !data[k])) throw new Error('Falta completar la dirección.');
     for (const s of all) {
       if (s.id === id) continue;
       if (n(s.numero) === n(data.numero)) throw new Error(`Ya existe un socio con el número ${data.numero}.`);
       if (data.curp && n(s.curp) === n(data.curp)) throw new Error(`La CURP ${data.curp} ya está registrada (socio N.º ${s.numero}).`);
     }
     const s = action === 'create' ? { id: crypto.randomUUID(), creado: now } : s0;
-    Object.assign(s, { numero: data.numero, nombre: data.nombre, direccion: data.direccion, nacimiento: data.nacimiento, concesion: (data.concesion || '').toUpperCase(), curp: (data.curp || '').toUpperCase(), claveElector: (data.claveElector || '').toUpperCase(), actualizado: now });
+    Object.assign(s, { numero: data.numero, nombre: data.nombre, calle: data.calle, numExt: data.numExt, numInt: data.numInt, colonia: data.colonia, cp: data.cp, municipio: data.municipio, estado: data.estado, direccion: componerDireccion(data), nacimiento: data.nacimiento, concesion: (data.concesion || '').toUpperCase(), curp: (data.curp || '').toUpperCase(), claveElector: (data.claveElector || '').toUpperCase(), actualizado: now });
     if (data.ineEstado !== undefined) s.ineEstado = data.ineEstado;
     if (data.fotoThumb) s.fotoThumb = data.fotoThumb; else if (data.quitarFoto) s.fotoThumb = '';
     if (data.ineFrente) s.ineFrenteData = data.ineFrente;
@@ -627,8 +670,32 @@ function fechaLarga(f) {
   const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(f || ''); if (!m) return '';
   return `${+m[3]} de ${MESES[+m[2] - 1]} de ${m[1]}`;
 }
-function cumpleHoy(f) { const m = /^\d{4}-(\d{2})-(\d{2})$/.exec(f || ''); const h = new Date(); return !!m && +m[1] === h.getMonth() + 1 && +m[2] === h.getDate(); }
-function cumpleMes(f) { const m = /^\d{4}-(\d{2})-/.exec(f || ''); return !!m && +m[1] === new Date().getMonth() + 1; }
+function fechaCorta(f) { const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(f || ''); return m ? `${m[3]}/${m[2]}/${m[1]}` : ''; }
+
+/* ---------- Dirección ---------- */
+const DIR_KEYS = ['calle', 'numExt', 'numInt', 'colonia', 'cp', 'estado', 'municipio'];
+const DIR_REQ = { calle: 'la calle', numExt: 'el núm. exterior', colonia: 'la colonia', cp: 'el C.P.', estado: 'el estado', municipio: 'el municipio' };
+// Primeros 2 dígitos del código postal por estado (SEPOMEX)
+const ESTADOS = [
+  ['Aguascalientes', [20, 20]], ['Baja California', [21, 22]], ['Baja California Sur', [23, 23]], ['Campeche', [24, 24]],
+  ['Chiapas', [29, 30]], ['Chihuahua', [31, 33]], ['Ciudad de México', [0, 16]], ['Coahuila', [25, 27]], ['Colima', [28, 28]],
+  ['Durango', [34, 35]], ['Estado de México', [50, 57]], ['Guanajuato', [36, 38]], ['Guerrero', [39, 41]], ['Hidalgo', [42, 43]],
+  ['Jalisco', [44, 49]], ['Michoacán', [58, 61]], ['Morelos', [62, 62]], ['Nayarit', [63, 63]], ['Nuevo León', [64, 67]],
+  ['Oaxaca', [68, 71]], ['Puebla', [72, 75]], ['Querétaro', [76, 76]], ['Quintana Roo', [77, 77]], ['San Luis Potosí', [78, 79]],
+  ['Sinaloa', [80, 82]], ['Sonora', [83, 85]], ['Tabasco', [86, 86]], ['Tamaulipas', [87, 89]], ['Tlaxcala', [90, 90]],
+  ['Veracruz', [91, 96]], ['Yucatán', [97, 97]], ['Zacatecas', [98, 99]]
+];
+function estadoDeCP(cp) {
+  if (!/^\d{5}$/.test(cp)) return '';
+  const n = +cp.slice(0, 2);
+  const e = ESTADOS.find(([, [a, b]]) => n >= a && n <= b);
+  return e ? e[0] : '';
+}
+function componerDireccion(d) {
+  if (!d.calle) return d.direccion || '';
+  return `${d.calle} ${d.numExt || ''}${d.numInt ? ' Int. ' + d.numInt : ''}, Col. ${d.colonia || ''}, C.P. ${d.cp || ''}, ${d.municipio || ''}, ${d.estado || ''}`;
+}
+function direccionCompleta(s) { return Object.keys(DIR_REQ).every(k => s[k]) && /^\d{5}$/.test(s.cp || ''); }
 function titulo(s) {
   const minus = ['de', 'del', 'la', 'las', 'los', 'y', 'e'];
   return String(s || '').toLowerCase().replace(/\s+/g, ' ').trim().split(' ')
@@ -704,13 +771,13 @@ const FILTROS = {
   ineRevisar: { label: 'INE por revisar',    test: s => s.ineEstado === 'revisar' },
   sinIne:     { label: 'Sin INE',            test: s => !s.ineFrente && !s.ineReverso },
   sinFoto:    { label: 'Sin foto',           test: s => !photoSrc(s) },
-  cumple:     { label: 'Cumpleaños del mes', test: s => cumpleMes(s.nacimiento) }
+  incompletos:{ label: 'Datos incompletos',  test: s => !s.nacimiento || !s.curp || !s.concesion || !direccionCompleta(s) }
 };
 const VACIOS = {
   ineRevisar: ['¡Todas las INE están en orden!', 'No hay credenciales pendientes de revisar.'],
   sinIne: ['¡Todos tienen su INE!', 'No hay socios sin credencial escaneada.'],
   sinFoto: ['¡Todos tienen foto!', 'No hay gafetes sin foto.'],
-  cumple: ['Nadie cumple este mes', 'No hay cumpleaños registrados en este mes.']
+  incompletos: ['Todos los registros están completos', 'No hay socios con datos faltantes.']
 };
 function setFiltro(f) { filtro = f; render(); }
 
@@ -740,7 +807,7 @@ function ineChip(s) {
 function render() {
   const q = fold($('q').value.trim());
   const items = socios.filter(FILTROS[filtro].test)
-    .filter(s => !q || [s.nombre, s.numero, s.concesion, s.curp].some(v => fold(v).includes(q)));
+    .filter(s => !q || [s.nombre, s.numero, s.concesion, s.curp, s.colonia].some(v => fold(v).includes(q)));
 
   $('count').textContent = String(socios.length).padStart(2, '0');
   $('countLbl').textContent = socios.length === 1 ? 'socio registrado' : 'socios registrados';
@@ -759,17 +826,16 @@ function render() {
   }
 
   $('list').innerHTML = '<div class="grid">' + items.map((s, i) => {
-    const e = edad(s.nacimiento);
     return `
     <article class="card" style="animation-delay:${Math.min(i, 12) * 35}ms" onclick="openDetail('${esc(s.id)}')">
-      <div class="band"><i class="band-ck checker"></i>${cumpleHoy(s.nacimiento) ? '<span class="bday">🎉 CUMPLE</span>' : '<span class="tag">SOCIO</span>'}<span class="num"><i>N.º </i><u>#</u>${esc(s.numero)}</span></div>
+      <div class="band"><i class="band-ck checker"></i><span class="tag">SOCIO</span><span class="num"><i>N.º </i><u>#</u>${esc(s.numero)}</span></div>
       ${avatar(s)}
       <div class="card-body">
         <h3>${esc(s.nombre)}</h3>
         ${s.concesion
           ? `<div class="plate"><small>CONCESIÓN</small><b>${esc(s.concesion)}</b></div>`
           : `<div class="plate none"><b>Sin concesión</b></div>`}
-        <div class="meta-row">${e !== null ? `<span class="st info">${e} años</span>` : ''}${ineChip(s)}</div>
+        <div class="meta-row">${ineChip(s)}${FILTROS.incompletos.test(s) ? '<span class="st warn">Datos incompletos</span>' : ''}</div>
       </div>
       <div class="card-actions">
         <button onclick="event.stopPropagation();openForm('${esc(s.id)}')" aria-label="Editar">
@@ -795,12 +861,13 @@ function openDetail(id) {
       ${avatar(s)}
       <div>
         <h2>${esc(s.nombre)}</h2>
-        <div class="chips"><span class="st info">Socio N.º ${esc(s.numero)}</span>${s.concesion ? `<span class="st info">Concesión ${esc(s.concesion)}</span>` : ''}${ineChip(s)}${cumpleHoy(s.nacimiento) ? '<span class="st ok">🎉 Cumple hoy</span>' : ''}</div>
+        <div class="chips"><span class="st info">Socio N.º ${esc(s.numero)}</span>${s.concesion ? `<span class="st info">Concesión ${esc(s.concesion)}</span>` : ''}${ineChip(s)}</div>
       </div>
     </div>
     <dl class="det-list">
-      ${fila('Nacimiento', s.nacimiento ? fechaLarga(s.nacimiento) + (e !== null ? ` · ${e} años` : '') : '')}
-      ${fila('Dirección', s.direccion)}
+      ${fila('Fecha de nacimiento', fechaCorta(s.nacimiento))}
+      ${fila('Edad', e !== null ? e + ' años' : '')}
+      ${fila('Dirección', componerDireccion(s))}
       ${fila('CURP', s.curp, 'mono')}
       ${fila('Clave elector', s.claveElector, 'mono')}
     </dl>
@@ -839,7 +906,8 @@ async function verificarIne(id) {
 /* ================= FORMULARIO ================= */
 let editingId = null, newPhoto = null, removePhoto = false;
 const ine = { frente: {}, reverso: {} };   // { data, estado, local, existing }
-const AUTO_FIELDS = ['nombre', 'nacimiento', 'curp', 'direccion', 'claveElector'];
+const AUTO_FIELDS = ['nombre', 'nacimiento', 'curp', 'claveElector'];
+let dirIne = null;   // dirección leída de la INE (solo se usa si el usuario lo pide)
 
 function nextNumber() {
   const nums = socios.map(s => parseInt(String(s.numero).replace(/\D/g, ''), 10)).filter(n => !isNaN(n));
@@ -866,7 +934,11 @@ function openForm(id = null) {
   $('formTitle').textContent = s ? 'Editar socio' : 'Nuevo socio';
   $('formSub').textContent = s ? `Actualiza los datos de ${s.nombre.split(' ')[0]}` : 'Empieza escaneando su INE';
   $('f_numero').value = s ? s.numero : nextNumber();
-  ['concesion', 'nombre', 'nacimiento', 'curp', 'direccion', 'claveElector'].forEach(k => $('f_' + k).value = s ? (s[k] || '') : '');
+  ['concesion', 'nombre', 'nacimiento', 'curp', 'claveElector', ...DIR_KEYS].forEach(k => $('f_' + k).value = s ? (s[k] || '') : '');
+  if (!s) $('f_estado').value = 'Quintana Roo';
+  dirIne = null; $('addrIne').hidden = true;
+  document.querySelectorAll('#form .lf.bad').forEach(x => x.classList.remove('bad'));
+  toggleAddr(false); resumenDireccion();
   AUTO_FIELDS.forEach(k => $('lf_' + k).classList.remove('auto'));
   setPick(s ? photoSrc(s) : '');
   $('file').value = '';
@@ -1064,10 +1136,10 @@ function leerFrente(texto) {
     if (resto) partes.push(resto);
     const STOP2 = /CLAVE|CURP|ANO DE|FECHA|SECCION|VIGENCIA|EMISION|REGISTRO|SEXO|ESTADO \d|MUNICIPIO|LOCALIDAD/;
     for (let i = iD + 1; i < lines.length && partes.length < 4; i++) { if (STOP2.test(U[i])) break; partes.push(lines[i]); }
-    if (partes.length) c.direccion = partes.map(titulo).join(', ').replace(/\bC\.?p\b\.?/g, 'C.P.');
+    if (partes.length) c.domicilio = partes;
   }
   if (c.nombre) score++;
-  if (c.direccion) score++;
+  if (c.domicilio) score++;
   if (c.curp) score++;
   if (c.nacimiento) score++;
   if (c.claveElector) score++;
@@ -1114,7 +1186,7 @@ async function procesarIne(lado, canvas0, srcWidth) {
   setSlot(lado, { img: data, cls: 'has reading', st: 'Leyendo…', stCls: 'info' });
   showMsg('info', `<b class="t">Leyendo ${nombreLado} de la INE…</b>${vertical ? 'La foto venía vertical: se enderezó automáticamente. ' : ''}Esto toma unos segundos.`);
 
-  let texto = null, ocrOff = false, girada = vertical, best = null;
+  let texto = null, ocrOff = false, girada = vertical, best = null, falla = null;
   for (let i = 0; i < giros.length; i++) {
     const c = i === 0 ? canvas : rotar(canvas0, giros[i]);
     const d = i === 0 ? data : c.toDataURL('image/jpeg', 0.85);
@@ -1124,13 +1196,21 @@ async function procesarIne(lado, canvas0, srcWidth) {
     catch (err) {
       if (err.auth) { closeOv('formOv'); return logout(err.message); }
       if (err.ocrOff) { ocrOff = true; break; }
-      console.warn(err);
+      falla = err; break;          // error del servidor: no es culpa de la imagen
     }
     const fr = leerFrente(t), rv = leerReverso(t);
     const score = Math.max(fr.score, rv.score);
     if (!best || score > best.score) best = { c, d, t, score, giro: giros[i] };
     const propio = lado === 'frente' ? fr : rv;
     if (propio.estado === 'ok' || score >= 3) break;   // ya se lee bien: no hace falta girar más
+  }
+  if (falla) {
+    ine[lado].estado = 'sinLeer';
+    setSlot(lado, { img: data, cls: 'has warn', st: 'Sin leer', stCls: 'warn' });
+    const viejo = /acci[oó]n no v[aá]lida/i.test(falla.message);
+    return showMsg('warn', `<b class="t">⚠ El servidor no pudo leer la INE</b>${viejo
+      ? 'El servidor todavía tiene la <b>versión anterior</b> del código. En Apps Script: <b>Implementar → Administrar implementaciones → ✏️ → Nueva versión → Implementar</b>.'
+      : 'Respuesta del servidor: <b>' + esc(falla.message) + '</b>'}<br>La imagen sí se guardará; puedes capturar los datos a mano.`);
   }
   if (best) {
     canvas = best.c; data = best.d; texto = best.t; girada = best.giro !== 0;
@@ -1169,10 +1249,15 @@ async function procesarIne(lado, canvas0, srcWidth) {
   }
   ine[lado].campos = campos;
   const llenos = autollenar(campos, lado === 'reverso');
+  if (campos.domicilio) {
+    dirIne = parseDomicilio(campos.domicilio);
+    $('addrIne').hidden = false;
+  }
 
-  const etiquetas = { nombre: 'Nombre', nacimiento: 'Nacimiento', curp: 'CURP', direccion: 'Dirección', claveElector: 'Clave elector' };
+  const etiquetas = { nombre: 'Nombre', nacimiento: 'Nacimiento', curp: 'CURP', claveElector: 'Clave elector', domicilio: 'Domicilio INE' };
   const det = Object.entries(campos).filter(([k, v]) => v && etiquetas[k])
-    .map(([k, v]) => `<span>${etiquetas[k]}</span><em>${esc(k === 'nacimiento' ? fechaLarga(v) : v)}</em>`).join('');
+    .map(([k, v]) => `<span>${etiquetas[k]}</span><em>${esc(k === 'nacimiento' ? fechaCorta(v) : k === 'domicilio' ? v.map(titulo).join(', ') : v)}</em>`).join('');
+  if (campos.domicilio) (res.notas = res.notas || []).push('La dirección no se copia sola: si la de la INE es la actual, usa "Copiar la dirección de la INE" en Dirección.');
   const notas = [...(res.notas || [])];
   const consejos = local.issues.length ? local.issues : ['Busca buena luz, sin reflejos', 'Que la credencial llene el marco', 'Mantén el teléfono quieto'];
 
@@ -1203,11 +1288,16 @@ $('form').addEventListener('submit', async e => {
   const v = k => $('f_' + k).value.trim();
   const data = {
     numero: v('numero'), nombre: v('nombre').replace(/\s+/g, ' '), concesion: v('concesion').toUpperCase(),
-    nacimiento: v('nacimiento'), curp: v('curp').toUpperCase(), direccion: v('direccion'), claveElector: v('claveElector').toUpperCase()
+    nacimiento: v('nacimiento'), curp: v('curp').toUpperCase(), claveElector: v('claveElector').toUpperCase()
   };
+  DIR_KEYS.forEach(k => data[k] = v(k));
+  data.numExt = data.numExt.toUpperCase(); data.numInt = data.numInt.toUpperCase();
+  data.direccion = componerDireccion(data);
   if (!data.numero) { toast('Falta el número de socio', true); return $('f_numero').focus(); }
   if (!data.nombre) { toast('Falta el nombre', true); return $('f_nombre').focus(); }
   if (data.curp && !CURP_RE.test(data.curp)) { toast('La CURP no tiene un formato válido', true); return $('f_curp').focus(); }
+  const errDir = validarDireccion(true);
+  if (errDir) { toggleAddr(true); $('addr').classList.add('err'); toast(errDir, true); $('addr').scrollIntoView({ behavior: 'smooth', block: 'center' }); return; }
   const prev = editingId ? socios.find(x => x.id === editingId) : null;
   const est = estadoIneFinal(prev?.ineEstado);
   if (est !== undefined) data.ineEstado = est;
@@ -1228,8 +1318,83 @@ $('form').addEventListener('submit', async e => {
     toast(err.message, true);
   } finally { btn.disabled = false; btn.textContent = 'Guardar'; }
 });
-['nombre', 'nacimiento', 'curp', 'direccion', 'claveElector'].forEach(k =>
+['nombre', 'nacimiento', 'curp', 'claveElector'].forEach(k =>
   $('f_' + k).addEventListener('input', () => $('lf_' + k).classList.remove('auto')));
+
+/* ---------- Dirección desplegable y validación ---------- */
+$('f_estado').innerHTML = '<option value="">Elige…</option>' + ESTADOS.map(([n]) => `<option>${n}</option>`).join('');
+function toggleAddr(abrir) {
+  const a = $('addr'), open = abrir ?? !a.classList.contains('open');
+  a.classList.toggle('open', open); $('addrBody').hidden = !open;
+  if (open && abrir === undefined) setTimeout(() => (DIR_KEYS.map(k => $('f_' + k)).find(el => !el.value) || $('f_calle')).focus(), 50);
+  if (!open) { validarDireccion(false); resumenDireccion(); }
+}
+function marcar(k, msg) {
+  const lf = $('lf_' + k); lf.classList.toggle('bad', !!msg); lf.querySelector('.msg').textContent = msg || '';
+}
+// Devuelve el primer error (o '') y marca los campos con problema
+function validarDireccion(estricto) {
+  const v = k => $('f_' + k).value.trim();
+  let primero = '';
+  const err = (k, m) => { if (estricto || v(k)) marcar(k, m); if (!primero) primero = m; };
+  DIR_KEYS.forEach(k => marcar(k, ''));
+  if (v('calle').length < 3) err('calle', v('calle') ? 'Escribe el nombre completo de la calle' : 'Falta la calle');
+  if (!/^(\d+[A-Z]?(-[A-Z0-9]+)?|S\/?N|[A-Z]?\d+[A-Z]?)$/i.test(v('numExt'))) err('numExt', v('numExt') ? 'Usa un número (ej. 245, 12-B) o S/N' : 'Falta el núm. exterior');
+  if (v('colonia').length < 3) err('colonia', v('colonia') ? 'Escribe el nombre completo' : 'Falta la colonia');
+  const cp = v('cp');
+  if (!/^\d{5}$/.test(cp)) err('cp', cp ? 'Debe tener 5 dígitos' : 'Falta el C.P.');
+  else if (!estadoDeCP(cp)) err('cp', 'Este C.P. no existe');
+  if (!v('estado')) err('estado', 'Elige el estado');
+  else if (/^\d{5}$/.test(cp) && estadoDeCP(cp) && estadoDeCP(cp) !== v('estado')) err('estado', `El C.P. ${cp} es de ${estadoDeCP(cp)}`);
+  if (v('municipio').length < 3) err('municipio', v('municipio') ? 'Escribe el nombre completo' : 'Falta el municipio');
+  $('addr').classList.toggle('err', !!primero && estricto);
+  return primero ? primero + ' (dirección)' : '';
+}
+function resumenDireccion() {
+  const d = {}; DIR_KEYS.forEach(k => d[k] = $('f_' + k).value.trim());
+  const faltan = Object.keys(DIR_REQ).filter(k => !d[k]).length;
+  const algo = DIR_KEYS.some(k => k !== 'estado' && d[k]);
+  const partes = [[d.calle, d.numExt, d.numInt && 'Int. ' + d.numInt].filter(Boolean).join(' '), d.colonia && 'Col. ' + d.colonia, d.cp && 'C.P. ' + d.cp, d.municipio, d.estado].filter(Boolean);
+  $('addrTxt').textContent = algo ? partes.join(', ') : 'Toca para capturar la dirección';
+  $('addrTxt').classList.toggle('vacio', !algo);
+  const ok = !faltan && !validarDireccionSilenciosa();
+  $('addrSt').className = 'st ' + (ok ? 'ok' : algo ? 'warn' : '');
+  $('addrSt').textContent = ok ? 'Completa ✓' : faltan ? `Faltan ${faltan}` : algo ? 'Revisar' : 'Pendiente';
+  if (ok) $('addr').classList.remove('err');
+}
+function validarDireccionSilenciosa() {
+  const cp = $('f_cp').value.trim(), est = $('f_estado').value;
+  return !/^\d{5}$/.test(cp) || !estadoDeCP(cp) || (est && estadoDeCP(cp) !== est);
+}
+$('f_cp').addEventListener('input', e => {
+  e.target.value = e.target.value.replace(/\D/g, '').slice(0, 5);
+  const est = estadoDeCP(e.target.value);
+  if (est) $('f_estado').value = est;
+  resumenDireccion();
+});
+DIR_KEYS.forEach(k => $('f_' + k).addEventListener(k === 'estado' ? 'change' : 'input', () => { marcar(k, ''); resumenDireccion(); }));
+
+// Separa el domicilio de la INE en calle / número / colonia / C.P. / municipio
+function parseDomicilio(lineas) {
+  const L = lineas.map(l => l.trim()).filter(Boolean), d = {};
+  if (L[0]) {
+    const m = L[0].match(/^(.*?\D)\s+(\d+\s*[A-Z]?|S\/?N)(?:\s+(?:INT\.?|INTERIOR|DEPTO\.?|DEP\.?)\s*(\S+))?\s*$/i);
+    if (m) { d.calle = titulo(m[1]); d.numExt = m[2].replace(/\s/g, '').toUpperCase(); if (m[3]) d.numInt = m[3].toUpperCase(); }
+    else d.calle = titulo(L[0]);
+  }
+  const resto = L.slice(1).join(' ');
+  const cp = resto.match(/\b(\d{5})\b/);
+  if (cp) { d.cp = cp[1]; d.estado = estadoDeCP(cp[1]); }
+  if (L[1]) d.colonia = titulo(L[1].replace(/\b\d{5}\b/, '').replace(/^(COL\.?|COLONIA|FRACC\.?|FRACCIONAMIENTO|BARRIO|BO\.?)\s+/i, '').trim());
+  if (L[2]) d.municipio = titulo(L[2].split(',')[0].replace(/\b\d{5}\b/, '').trim());
+  return d;
+}
+function usarDireccionIne() {
+  if (!dirIne) return;
+  DIR_KEYS.forEach(k => { if (dirIne[k]) $('f_' + k).value = dirIne[k]; });
+  resumenDireccion(); validarDireccion(false);
+  toast('Dirección copiada de la INE: revísala');
+}
 
 /* ================= ELIMINAR ================= */
 function askDelete(id) {
