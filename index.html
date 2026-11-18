@@ -9,6 +9,12 @@
 <link rel="icon" type="image/png" sizes="32x32" href="favicon-32.png?v=2">
 <link rel="icon" type="image/png" sizes="512x512" href="logo.png?v=2">
 <link rel="apple-touch-icon" href="apple-touch-icon.png?v=2">
+<link rel="manifest" href="manifest.webmanifest">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="Socios">
+<meta name="application-name" content="Socios">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,600;12..96,800&family=Space+Mono:wght@700&display=swap" rel="stylesheet">
@@ -394,6 +400,17 @@
   .ed-repeat{background:rgba(255,255,255,.12);color:#fff}
   .ed-side{display:flex;flex-direction:column}
 
+  /* --- Instalar como app --- */
+  .bar-right{display:flex;align-items:center;gap:8px}
+  .install-chip{background:var(--ink);color:var(--cyan);border-radius:999px;padding:8px 14px;font-weight:800;font-size:.82rem;white-space:nowrap;box-shadow:0 4px 0 -1px rgba(0,0,0,.2)}
+  .install-link{display:block;margin:14px auto 0;color:var(--turq-deep);font-weight:800;font-size:.88rem;text-decoration:underline;text-underline-offset:3px}
+  .inst-icon{display:block;width:84px;height:84px;margin:0 auto 10px;border-radius:22px;box-shadow:0 8px 20px -8px rgba(11,31,34,.4)}
+  .inst-steps{display:flex;flex-direction:column;gap:10px;margin:6px 0 4px}
+  .inst-steps div{display:flex;align-items:center;gap:12px;background:var(--foam);border-radius:14px;padding:12px 14px;font-size:.95rem}
+  .inst-steps div>b:first-child{width:28px;height:28px;flex-shrink:0;border-radius:9px;background:var(--ink);color:var(--cyan);display:grid;place-items:center;font-family:var(--mono)}
+  .inst-steps .ico{display:inline-grid;place-items:center;min-width:24px;height:24px;border-radius:6px;background:#fff;font-weight:800}
+  @media (max-width:420px){ .install-chip{padding:7px 10px;font-size:.75rem} .brand > div{display:none} }
+
   /* ================= Ajustes responsivos ================= */
   .search{min-width:0}
   .scan-hint{white-space:normal;max-width:calc(100vw - 32px);width:max-content;text-align:center}
@@ -478,6 +495,7 @@
     </div>
     <div class="login-err" id="loginErr"></div>
     <button class="btn btn-main" id="loginBtn" type="submit">Entrar</button>
+    <button type="button" class="install-link" id="instLogin" hidden onclick="instalarApp()">📲 Instalar como app en este dispositivo</button>
   </form>
   <div class="waves" aria-hidden="true">
     <svg class="w1" viewBox="0 0 1440 140" preserveAspectRatio="none"><path fill="#fff" d="M0 60c120 30 240 30 360 0s240-30 360 0 240 30 360 0 240-30 360 0v80H0z"/></svg>
@@ -496,7 +514,7 @@
           <img class="brand-logo" src="logo.png" alt="">
           <div><div>Registro de Socios</div><small>Sindicato de Taxistas · Lázaro Cárdenas del Río</small></div>
         </div>
-        <div class="user"><span id="who"></span><button onclick="logout()">Salir</button></div>
+        <div class="bar-right"><button class="install-chip" id="instTop" hidden onclick="instalarApp()">📲 Instalar app</button><div class="user"><span id="who"></span><button onclick="logout()">Salir</button></div></div>
       </div>
       <div class="hero">
         <div>
@@ -682,6 +700,27 @@
   </div>
 </div>
 
+<!-- ================= INSTALAR APP ================= -->
+<div class="overlay" id="instOv">
+  <div class="sheet">
+    <div class="grab"></div>
+    <img src="icon-192.png" alt="" class="inst-icon">
+    <h2>Instala la app</h2>
+    <p class="sub">Queda en tu pantalla de inicio y se abre como cualquier app, sin descargar nada de una tienda.</p>
+    <div class="inst-steps" id="instIos" hidden>
+      <div><b>1</b><span>Toca el botón <b>Compartir</b> <span class="ico">⬆︎</span> (abajo en Safari).</span></div>
+      <div><b>2</b><span>Elige <b>“Agregar a pantalla de inicio”</b>.</span></div>
+      <div><b>3</b><span>Toca <b>Agregar</b>. ¡Listo! Busca el ícono <b>Socios</b>.</span></div>
+    </div>
+    <div class="inst-steps" id="instOtro" hidden>
+      <div><b>1</b><span>Abre el menú del navegador <span class="ico">⋮</span> (arriba a la derecha).</span></div>
+      <div><b>2</b><span>Elige <b>“Instalar app”</b> o <b>“Agregar a pantalla principal”</b>.</span></div>
+      <div><b>3</b><span>Confirma. El ícono <b>Socios</b> aparecerá con tus apps.</span></div>
+    </div>
+    <div class="sheet-actions"><button class="btn btn-main" onclick="closeOv('instOv')">Entendido</button></div>
+  </div>
+</div>
+
 <div class="lightbox" id="lightbox" onclick="this.classList.remove('open')"><img id="lightImg" alt=""></div>
 <div class="toast" id="toast"></div>
 
@@ -708,14 +747,19 @@ async function handle(res) {
   if (!j.ok) { const e = new Error(j.error || 'Error'); e.auth = !!j.auth; e.ocrOff = !!j.ocrOff; throw e; }
   return j;
 }
+// fetch con mensaje claro cuando no hay internet
+async function pedir(url, opts) {
+  try { return await fetch(url, opts); }
+  catch { throw new Error(navigator.onLine === false ? 'Sin conexión a internet. Revisa tu señal e intenta de nuevo.' : 'No se pudo conectar con el servidor. Intenta de nuevo en un momento.'); }
+}
 const api = {
   async list() {
     if (DEMO) return demo.list();
-    return (await handle(await fetch(CONFIG.API_URL + '?token=' + encodeURIComponent(session.token || '')))).data;
+    return (await handle(await pedir(CONFIG.API_URL + '?token=' + encodeURIComponent(session.token || '')))).data;
   },
   async post(action, extra = {}) {
     if (DEMO) return demo.post(action, extra);
-    const res = await fetch(CONFIG.API_URL, {
+    const res = await pedir(CONFIG.API_URL, {
       method: 'POST',
       headers: { 'Content-Type': 'text/plain;charset=utf-8' },
       body: JSON.stringify({ action, token: session.token, ...extra })
@@ -1703,6 +1747,31 @@ document.addEventListener('keydown', e => {
   if ($('scanner').classList.contains('open')) return stopScan();
   document.querySelectorAll('.overlay.open,.lightbox.open').forEach(o => o.classList.remove('open'));
 });
+
+/* ================= APP INSTALABLE ================= */
+let promptInstalar = null;
+const esApp = () => matchMedia('(display-mode: standalone)').matches || navigator.standalone === true;
+const esIOS = () => /iphone|ipad|ipod/i.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+function mostrarInstalar() {
+  const ver = !esApp() && !DEMO && (!!promptInstalar || esIOS());
+  $('instTop').hidden = !ver; $('instLogin').hidden = !ver;
+}
+window.addEventListener('beforeinstallprompt', e => { e.preventDefault(); promptInstalar = e; mostrarInstalar(); });
+window.addEventListener('appinstalled', () => { promptInstalar = null; mostrarInstalar(); toast('✓ App instalada: búscala como “Socios”'); });
+async function instalarApp() {
+  if (promptInstalar) {
+    promptInstalar.prompt();
+    await promptInstalar.userChoice.catch(() => {});
+    promptInstalar = null; mostrarInstalar();
+    return;
+  }
+  $('instIos').hidden = !esIOS(); $('instOtro').hidden = esIOS();
+  openOv('instOv');
+}
+if ('serviceWorker' in navigator && (location.protocol === 'https:' || location.hostname === 'localhost')) {
+  window.addEventListener('load', () => navigator.serviceWorker.register('sw.js').catch(() => {}));
+}
+mostrarInstalar();
 
 session.token ? showApp() : showLogin();
 </script>
