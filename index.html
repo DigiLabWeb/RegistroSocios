@@ -297,6 +297,11 @@
   .meta-row{display:flex;flex-wrap:wrap;justify-content:center;gap:6px}
   .card{cursor:pointer}
   .req{color:var(--coral)}
+  .inp .pref{padding-left:16px;font-family:var(--mono);font-weight:700;color:var(--muted)}
+  #f_telefono{font-family:var(--mono);letter-spacing:.5px}
+  .det-list .tel-acts{display:flex;gap:6px;margin-top:8px;flex-wrap:wrap;padding:0;border:0}
+  .tel-acts a{display:inline-flex;align-items:center;gap:6px;padding:7px 12px;border-radius:999px;font-weight:800;font-size:.82rem;text-decoration:none;background:var(--foam);color:var(--turq-deep)}
+  .tel-acts a.wa{background:#e3f7ec;color:#1a7f4b}
   .addr-sum{width:100%;display:flex;align-items:center;gap:10px;background:var(--foam);border:2px solid transparent;border-radius:16px;padding:12px 14px;text-align:left;transition:border .2s,background .2s}
   .addr-sum:hover{border-color:var(--lagoon)}
   .addr.open .addr-sum{border-color:var(--turq);background:#fff;border-bottom-left-radius:6px;border-bottom-right-radius:6px}
@@ -639,6 +644,7 @@
       <div class="lf upper"><label for="f_concesion">Concesión</label><div class="inp"><input id="f_concesion" placeholder="Ej. 0123" autocapitalize="characters"></div></div>
     </div>
     <div class="lf" id="lf_nombre"><label for="f_nombre">Nombre completo <span class="tagauto">INE</span></label><div class="inp"><input id="f_nombre" placeholder="Nombre(s) y apellidos" autocapitalize="words"></div></div>
+    <div class="lf" id="lf_telefono"><label for="f_telefono">Teléfono <span class="req">*</span></label><div class="inp"><span class="pref">+52</span><input id="f_telefono" type="tel" inputmode="numeric" autocomplete="tel-national" maxlength="18" placeholder="984 123 4567"></div><span class="msg"></span></div>
     <div class="row2">
       <div class="lf" id="lf_nacimiento"><label for="f_nacimiento">Fecha de nacimiento <span class="tagauto">INE</span></label><div class="inp"><input id="f_nacimiento" type="date"></div></div>
       <div class="lf upper" id="lf_curp"><label for="f_curp">CURP <span class="tagauto">INE</span></label><div class="inp"><input id="f_curp" maxlength="18" placeholder="18 caracteres" spellcheck="false"></div></div>
@@ -759,7 +765,7 @@
       <details class="fijos">
         <summary>Campos fijos <small>(no se pueden quitar)</small></summary>
         <div class="fijos-list">
-          <span>N.º de socio</span><span>Concesión</span><span>Nombre</span><span>Fecha de nacimiento</span><span>CURP</span><span>Clave de elector</span><span>Dirección</span><span>INE (frente y reverso)</span><span>Foto del gafete</span>
+          <span>N.º de socio</span><span>Concesión</span><span>Nombre</span><span>Teléfono</span><span>Fecha de nacimiento</span><span>CURP</span><span>Clave de elector</span><span>Dirección</span><span>INE (frente y reverso)</span><span>Foto del gafete</span>
         </div>
         <p class="hint">Estos campos los usa la lectura de la INE y las validaciones, por eso siempre están.</p>
       </details>
@@ -835,7 +841,7 @@
 <script>
 /* ================= CONFIGURACIÓN ================= */
 const CONFIG = {
-  API_URL: 'https://script.google.com/macros/s/AKfycbx-NlIoA5zuwtaZPwUnTiwT2KcbgiNPbOIKaJX_L_6e80umgl5g-335t3V1qvVcPvE/exec'
+  API_URL: 'https://script.google.com/macros/s/AKfycbx5TF24HKjNQ8rrP6TLqbVpCfB_JGn6_M_vjKhXMz0VjWlAxJIbbuMx10T_Z5fFzTI/exec'
 };
 // Usuarios y contraseñas viven en Code.gs (no aquí).
 
@@ -953,7 +959,8 @@ const demo = {
       if (data.curp && n(s.curp) === n(data.curp)) throw new Error(`La CURP ${data.curp} ya está registrada (socio N.º ${s.numero}).`);
     }
     const s = action === 'create' ? { id: crypto.randomUUID(), creado: now } : s0;
-    Object.assign(s, { numero: data.numero, nombre: data.nombre, calle: data.calle, numExt: data.numExt, numInt: data.numInt, colonia: data.colonia, cp: data.cp, municipio: data.municipio, estado: data.estado, direccion: componerDireccion(data), nacimiento: data.nacimiento, concesion: (data.concesion || '').toUpperCase(), curp: (data.curp || '').toUpperCase(), claveElector: (data.claveElector || '').toUpperCase(), actualizado: now });
+    if (!/^\d{10}$/.test(data.telefono || '')) throw new Error('El teléfono debe tener 10 dígitos.');
+    Object.assign(s, { numero: data.numero, nombre: data.nombre, telefono: data.telefono, calle: data.calle, numExt: data.numExt, numInt: data.numInt, colonia: data.colonia, cp: data.cp, municipio: data.municipio, estado: data.estado, direccion: componerDireccion(data), nacimiento: data.nacimiento, concesion: (data.concesion || '').toUpperCase(), curp: (data.curp || '').toUpperCase(), claveElector: (data.claveElector || '').toUpperCase(), actualizado: now });
     if (data.ineEstado !== undefined) s.ineEstado = data.ineEstado;
     for (const c of this.campos()) if (c.obligatorio && !(data.extras || {})[c.id]) throw new Error(`Falta "${c.etiqueta}".`);
     s.extras = JSON.stringify({ ...extrasDe(s), ...(data.extras || {}) });
@@ -984,6 +991,13 @@ function fechaLarga(f) {
   const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(f || ''); if (!m) return '';
   return `${+m[3]} de ${MESES[+m[2] - 1]} de ${m[1]}`;
 }
+function soloTel(v) {
+  let t = String(v || '').replace(/\D/g, '');
+  if (t.length === 12 && t.startsWith('52')) t = t.slice(2);
+  if (t.length === 13 && t.startsWith('521')) t = t.slice(3);
+  return t;
+}
+const telBonito = t => (t = soloTel(t)).length === 10 ? `${t.slice(0, 3)} ${t.slice(3, 6)} ${t.slice(6)}` : t;
 function fechaCorta(f) { const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(f || ''); return m ? `${m[3]}/${m[2]}/${m[1]}` : ''; }
 
 /* ---------- Dirección ---------- */
@@ -1011,6 +1025,7 @@ function componerDireccion(d) {
 }
 function faltantes(s) {
   const f = [];
+  if (soloTel(s.telefono).length !== 10) f.push('teléfono');
   if (!s.nacimiento) f.push('fecha de nacimiento');
   if (!s.curp) f.push('CURP');
   if (!s.concesion) f.push('concesión');
@@ -1153,7 +1168,7 @@ function ineChip(s) {
 function render() {
   const q = fold($('q').value.trim());
   const items = socios.filter(FILTROS[filtro].test)
-    .filter(s => !q || [s.nombre, s.numero, s.concesion, s.curp, s.colonia, ...Object.values(extrasDe(s))].some(v => fold(v).includes(q)));
+    .filter(s => !q || [s.nombre, s.numero, s.concesion, s.curp, s.colonia, soloTel(s.telefono), ...Object.values(extrasDe(s))].some(v => fold(v).includes(q)));
 
   $('count').textContent = String(socios.length).padStart(2, '0');
   $('countLbl').textContent = socios.length === 1 ? 'socio registrado' : 'socios registrados';
@@ -1211,6 +1226,7 @@ function openDetail(id) {
       </div>
     </div>
     <dl class="det-list">
+      ${(() => { const t = soloTel(s.telefono); return `<div><dt>Teléfono</dt><dd>${t ? `<span class="mono">${esc(telBonito(t))}</span><div class="tel-acts"><a href="tel:+52${t}">📞 Llamar</a><a class="wa" href="https://wa.me/52${t}" target="_blank" rel="noopener">💬 WhatsApp</a></div>` : '<span style="color:var(--muted);font-weight:500">—</span>'}</dd></div>`; })()}
       ${fila('Fecha de nacimiento', fechaCorta(s.nacimiento))}
       ${fila('Edad', e !== null ? e + ' años' : '')}
       ${fila('Dirección', componerDireccion(s))}
@@ -1289,6 +1305,7 @@ function openForm(id = null) {
   AUTO_FIELDS.forEach(k => $('lf_' + k).classList.remove('auto'));
   setPick(s ? photoSrc(s) : '');
   renderExtras(s ? extrasDe(s) : {});
+  $('f_telefono').value = s ? telBonito(s.telefono) : ''; marcarTel('');
   $('file').value = '';
   for (const lado of ['frente', 'reverso']) {
     const has = s && (lado === 'frente' ? s.ineFrente : s.ineReverso);
@@ -1791,6 +1808,11 @@ $('form').addEventListener('submit', async e => {
   data.direccion = componerDireccion(data);
   if (!data.numero) { toast('Falta el número de socio', true); return $('f_numero').focus(); }
   if (!data.nombre) { toast('Falta el nombre', true); return $('f_nombre').focus(); }
+  data.telefono = soloTel($('f_telefono').value);
+  if (data.telefono.length !== 10) {
+    const m = data.telefono ? 'El teléfono debe tener 10 dígitos' : 'Falta el teléfono';
+    marcarTel(m); toast(m, true); $('f_telefono').scrollIntoView({ behavior: 'smooth', block: 'center' }); return $('f_telefono').focus();
+  }
   if (data.curp && !CURP_RE.test(data.curp)) { toast('La CURP no tiene un formato válido', true); return $('f_curp').focus(); }
   const errDir = validarDireccion(true);
   if (errDir) { toggleAddr(true); $('addr').classList.add('err'); toast(errDir, true); $('addr').scrollIntoView({ behavior: 'smooth', block: 'center' }); return; }
@@ -1819,6 +1841,16 @@ $('form').addEventListener('submit', async e => {
 });
 ['nombre', 'nacimiento', 'curp', 'claveElector'].forEach(k =>
   $('f_' + k).addEventListener('input', () => $('lf_' + k).classList.remove('auto')));
+
+/* ---------- Teléfono ---------- */
+function marcarTel(m) { $('lf_telefono').classList.toggle('bad', !!m); $('lf_telefono').querySelector('.msg').textContent = m || ''; }
+$('f_telefono').addEventListener('input', e => {
+  let t = e.target.value.replace(/\D/g, '');
+  if (t.length > 10 && t.startsWith('52')) t = t.slice(t.startsWith('521') && t.length > 12 ? 3 : 2);   // quita el +52
+  t = t.slice(0, 10);
+  e.target.value = t.length > 6 ? `${t.slice(0, 3)} ${t.slice(3, 6)} ${t.slice(6)}` : t.length > 3 ? `${t.slice(0, 3)} ${t.slice(3)}` : t;
+  marcarTel('');
+});
 
 /* ---------- Dirección desplegable y validación ---------- */
 $('f_estado').innerHTML = '<option value="">Elige…</option>' + ESTADOS.map(([n]) => `<option>${n}</option>`).join('');
@@ -2016,6 +2048,7 @@ async function guardarCampo() {
   const tipo = $('ce_tipo').value;
   const opciones = $('ce_ops').value.split('\n').map(x => x.trim()).filter(Boolean);
   if (!etiqueta) { toast('Escribe el nombre del campo', true); return $('ce_etq').focus(); }
+  if (/tel[eé]f/i.test(etiqueta)) return toast('El teléfono ya es un campo fijo del registro', true);
   if (CAMPOS.some((c, i) => i !== editCampo && c.etiqueta.toLowerCase() === etiqueta.toLowerCase())) return toast('Ya existe un campo con ese nombre', true);
   if (tipo === 'lista' && opciones.length < 2) { toast('La lista necesita al menos 2 opciones', true); return $('ce_ops').focus(); }
   const c = { ...(editCampo !== null ? CAMPOS[editCampo] : {}), etiqueta, tipo, opciones: tipo === 'lista' ? opciones : [], obligatorio: $('ce_obl').checked };
