@@ -400,6 +400,47 @@
   .ed-repeat{background:rgba(255,255,255,.12);color:#fff}
   .ed-side{display:flex;flex-direction:column}
 
+  /* --- Administración --- */
+  .es-capturista .solo-admin{display:none!important}
+  .adm-chip{background:rgba(255,255,255,.16);color:#fff;border-radius:999px;padding:8px 14px;font-weight:800;font-size:.82rem;white-space:nowrap}
+  .adm-chip:hover{background:rgba(255,255,255,.26)}
+  .user .who{background:none;color:#fff;padding:0 2px;font-weight:700;font-size:.9rem;text-decoration:underline dotted rgba(255,255,255,.6);text-underline-offset:4px}
+  .tabs{display:flex;gap:6px;background:var(--foam);border-radius:14px;padding:5px;margin:4px 0 16px}
+  .tab{flex:1;padding:10px;border-radius:10px;font-weight:800;font-size:.9rem;color:var(--muted)}
+  .tab.on{background:#fff;color:var(--ink);box-shadow:0 2px 8px -3px rgba(11,31,34,.25)}
+  .adm-head{display:flex;align-items:center;justify-content:space-between;gap:10px;margin:14px 0 10px}
+  .btn.sm{padding:9px 14px;font-size:.85rem}
+  .hint{font-size:.82rem;color:var(--muted);margin:6px 0 10px;line-height:1.4}
+  .fijos{background:var(--foam);border-radius:14px;padding:10px 14px}
+  .fijos summary{font-weight:800;cursor:pointer}
+  .fijos summary small{font-weight:600;color:var(--muted)}
+  .fijos-list{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px}
+  .fijos-list span{background:#fff;border-radius:999px;padding:4px 10px;font-size:.8rem;font-weight:700;color:var(--turq-deep)}
+  .crow{display:flex;align-items:center;gap:10px;padding:11px 12px;border:2px solid var(--foam);border-radius:14px;margin-bottom:8px}
+  .crow .ci{flex:1;min-width:0}
+  .crow .ci b{display:block;word-break:break-word}
+  .crow .ci small{color:var(--muted);font-weight:600;font-size:.78rem}
+  .crow .acts{display:flex;gap:4px;flex-shrink:0}
+  .crow .acts button{width:34px;height:34px;border-radius:10px;background:var(--foam);color:var(--turq-deep);font-weight:800}
+  .crow .acts button:disabled{opacity:.3}
+  .crow .acts .del{color:var(--coral);background:#fdeeee}
+  .crow .acts .del.confirm{width:auto;padding:0 10px;background:var(--coral);color:#fff;font-size:.78rem}
+  .crow .av{width:36px;height:36px;border-radius:50%;background:var(--ink);color:var(--cyan);display:grid;place-items:center;font-weight:800;flex-shrink:0}
+  .vacio-box{text-align:center;color:var(--muted);padding:16px;border:2px dashed var(--foam);border-radius:14px;font-size:.9rem}
+  .editor-card{border:2px solid var(--turq);border-radius:16px;padding:14px;margin-top:10px;animation:rise .2s ease}
+  .editor-card .sheet-actions{margin-top:14px}
+  .switch{display:flex;align-items:center;gap:10px;cursor:pointer;padding:12px 0;text-transform:none;letter-spacing:0;font-size:.9rem!important;color:var(--ink)!important}
+  .switch input{display:none}
+  .switch span{width:46px;height:28px;border-radius:999px;background:#cfe3e2;position:relative;transition:background .2s;flex-shrink:0}
+  .switch span::after{content:'';position:absolute;top:3px;left:3px;width:22px;height:22px;border-radius:50%;background:#fff;transition:transform .2s;box-shadow:0 1px 3px rgba(0,0,0,.2)}
+  .switch input:checked+span{background:var(--turq)}
+  .switch input:checked+span::after{transform:translateX(18px)}
+  .switch em{font-style:normal;font-weight:600}
+  .seg{display:flex;gap:6px}
+  .seg button{flex:1;padding:12px;border-radius:14px;background:var(--foam);font-weight:800;color:var(--muted);border:2px solid transparent}
+  .seg button.on{background:#fff;border-color:var(--turq);color:var(--ink)}
+  @media (max-width:520px){ .adm-chip span{display:none} .adm-chip{padding:7px 11px;font-size:1rem} }
+
   /* --- Instalar como app --- */
   .bar-right{display:flex;align-items:center;gap:8px}
   .install-chip{background:var(--ink);color:var(--cyan);border-radius:999px;padding:8px 14px;font-weight:800;font-size:.82rem;white-space:nowrap;box-shadow:0 4px 0 -1px rgba(0,0,0,.2)}
@@ -514,7 +555,7 @@
           <img class="brand-logo" src="logo.png" alt="">
           <div><div>Registro de Socios</div><small>Sindicato de Taxistas · Lázaro Cárdenas del Río</small></div>
         </div>
-        <div class="bar-right"><button class="install-chip" id="instTop" hidden onclick="instalarApp()">📲 Instalar app</button><div class="user"><span id="who"></span><button onclick="logout()">Salir</button></div></div>
+        <div class="bar-right"><button class="install-chip" id="instTop" hidden onclick="instalarApp()">📲 Instalar app</button><button class="adm-chip" id="admBtn" hidden onclick="abrirAdmin()" aria-label="Administrar">⚙<span> Administrar</span></button><div class="user"><button class="who" id="who" onclick="abrirCuenta()" title="Mi cuenta"></button><button onclick="logout()">Salir</button></div></div>
       </div>
       <div class="hero">
         <div>
@@ -629,6 +670,9 @@
     </div>
     <div class="lf upper" id="lf_claveElector"><label for="f_claveElector">Clave de elector <span class="tagauto">INE</span></label><div class="inp"><input id="f_claveElector" maxlength="18" placeholder="Se llena al escanear" spellcheck="false"></div></div>
 
+    <div class="sec" id="secExtras" hidden><span class="sec-n">3</span> Datos adicionales</div>
+    <div id="extras"></div>
+
     <div class="sheet-actions">
       <button type="button" class="btn btn-soft" onclick="closeOv('formOv')">Cancelar</button>
       <button type="submit" class="btn btn-main" id="saveBtn">Guardar</button>
@@ -700,6 +744,70 @@
   </div>
 </div>
 
+<!-- ================= ADMINISTRAR ================= -->
+<div class="overlay" id="admOv">
+  <div class="sheet wide adm">
+    <div class="grab"></div>
+    <h2>Administrar</h2>
+    <p class="sub">Solo los administradores ven esta sección.</p>
+    <div class="tabs">
+      <button class="tab on" id="tabBtnCampos" onclick="verTab('campos')">Campos del registro</button>
+      <button class="tab" id="tabBtnUsuarios" onclick="verTab('usuarios')">Usuarios</button>
+    </div>
+
+    <div id="tab-campos">
+      <details class="fijos">
+        <summary>Campos fijos <small>(no se pueden quitar)</small></summary>
+        <div class="fijos-list">
+          <span>N.º de socio</span><span>Concesión</span><span>Nombre</span><span>Fecha de nacimiento</span><span>CURP</span><span>Clave de elector</span><span>Dirección</span><span>INE (frente y reverso)</span><span>Foto del gafete</span>
+        </div>
+        <p class="hint">Estos campos los usa la lectura de la INE y las validaciones, por eso siempre están.</p>
+      </details>
+      <div class="adm-head"><b>Campos personalizados</b><button class="btn btn-turq sm" onclick="editarCampo(null)">＋ Agregar</button></div>
+      <div id="camposList"></div>
+      <div class="editor-card" id="campoEd" hidden>
+        <b id="campoEdT">Nuevo campo</b>
+        <div class="lf"><label for="ce_etq">Nombre del campo</label><div class="inp"><input id="ce_etq" maxlength="40" placeholder="Ej. Teléfono, Tipo de sangre, Marca del taxi"></div></div>
+        <div class="row2 keep">
+          <div class="lf"><label for="ce_tipo">Tipo</label><div class="inp"><select id="ce_tipo" onchange="$('ce_opsBox').hidden = this.value !== 'lista'"><option value="texto">Texto</option><option value="numero">Número</option><option value="fecha">Fecha</option><option value="sino">Sí / No</option><option value="lista">Lista de opciones</option></select></div></div>
+          <div class="lf"><label>Obligatorio</label><label class="switch"><input type="checkbox" id="ce_obl"><span></span><em>Debe llenarse</em></label></div>
+        </div>
+        <div class="lf" id="ce_opsBox" hidden><label for="ce_ops">Opciones <small>(una por línea)</small></label><div class="inp"><textarea class="ta" id="ce_ops" rows="4" placeholder="Opción 1&#10;Opción 2&#10;Opción 3"></textarea></div></div>
+        <div class="sheet-actions"><button class="btn btn-soft" onclick="$('campoEd').hidden = true">Cancelar</button><button class="btn btn-main" id="ce_save" onclick="guardarCampo()">Guardar campo</button></div>
+      </div>
+    </div>
+
+    <div id="tab-usuarios" hidden>
+      <div class="adm-head"><b>Usuarios con acceso</b><button class="btn btn-turq sm" onclick="editarUsuario(null)">＋ Agregar</button></div>
+      <p class="hint"><b>Administrador:</b> hace todo. <b>Capturista:</b> registra y edita socios, pero no puede eliminarlos ni entrar a esta sección.</p>
+      <div id="usersList"><div class="loader"><i></i><i></i><i></i></div></div>
+      <div class="editor-card" id="userEd" hidden>
+        <b id="userEdT">Nuevo usuario</b>
+        <div class="lf"><label for="ue_user">Usuario</label><div class="inp"><input id="ue_user" maxlength="20" autocapitalize="none" spellcheck="false" placeholder="Ej. maria"></div></div>
+        <div class="lf"><label for="ue_pass" id="ue_passL">Contraseña</label><div class="inp"><input id="ue_pass" type="password" autocomplete="new-password" placeholder="Mínimo 8 caracteres"><button type="button" onclick="const p=$('ue_pass');p.type=p.type==='password'?'text':'password'">👁</button></div></div>
+        <div class="lf"><label for="ue_rol">Rol</label><div class="inp"><select id="ue_rol"><option value="admin">Administrador</option><option value="capturista">Capturista</option></select></div></div>
+        <div class="sheet-actions"><button class="btn btn-soft" onclick="$('userEd').hidden = true">Cancelar</button><button class="btn btn-main" id="ue_save" onclick="guardarUsuario()">Guardar usuario</button></div>
+      </div>
+    </div>
+
+    <div class="sheet-actions"><button class="btn btn-soft" onclick="closeOv('admOv')">Cerrar</button></div>
+  </div>
+</div>
+
+<!-- ================= MI CUENTA ================= -->
+<div class="overlay" id="cuentaOv">
+  <form class="sheet" id="cuentaForm" autocomplete="on">
+    <div class="grab"></div>
+    <h2>Mi cuenta</h2>
+    <p class="sub" id="cuentaSub"></p>
+    <input type="text" autocomplete="username" id="cu_user" hidden>
+    <div class="lf"><label for="cu_act">Contraseña actual</label><div class="inp"><input id="cu_act" type="password" autocomplete="current-password"></div></div>
+    <div class="lf"><label for="cu_new">Nueva contraseña</label><div class="inp"><input id="cu_new" type="password" autocomplete="new-password" placeholder="Mínimo 8 caracteres"></div></div>
+    <div class="lf"><label for="cu_rep">Repite la nueva contraseña</label><div class="inp"><input id="cu_rep" type="password" autocomplete="new-password"></div></div>
+    <div class="sheet-actions"><button type="button" class="btn btn-soft" onclick="closeOv('cuentaOv')">Cancelar</button><button class="btn btn-main" id="cu_save">Cambiar contraseña</button></div>
+  </form>
+</div>
+
 <!-- ================= INSTALAR APP ================= -->
 <div class="overlay" id="instOv">
   <div class="sheet">
@@ -755,7 +863,7 @@ async function pedir(url, opts) {
 const api = {
   async list() {
     if (DEMO) return demo.list();
-    return (await handle(await pedir(CONFIG.API_URL + '?token=' + encodeURIComponent(session.token || '')))).data;
+    return handle(await pedir(CONFIG.API_URL + '?token=' + encodeURIComponent(session.token || '')));
   },
   async post(action, extra = {}) {
     if (DEMO) return demo.post(action, extra);
@@ -777,12 +885,52 @@ const demo = {
   all() { try { return JSON.parse(store.get('socios_demo4') || '[]'); } catch { return []; } },
   save(v) { store.set('socios_demo4', JSON.stringify(v)); },
   pub(s) { const p = { ...s, ineFrente: !!s.ineFrenteData, ineReverso: !!s.ineReversoData }; delete p.ineFrenteData; delete p.ineReversoData; return p; },
-  list() { return this.all().map(s => this.pub(s)); },
-  async post(action, { id, data, user, pass, lado, estado }) {
+  users() { try { return JSON.parse(store.get('users_demo')) || { gael: { pass: 'admin', rol: 'admin' } }; } catch { return { gael: { pass: 'admin', rol: 'admin' } }; } },
+  saveUsers(u) { store.set('users_demo', JSON.stringify(u)); },
+  campos() { try { return JSON.parse(store.get('campos_demo') || '[]'); } catch { return []; } },
+  quien() { const u = this.users()[session.user]; if (!u) { const e = new Error('Tu sesión terminó. Vuelve a entrar.'); e.auth = true; throw e; } return { user: session.user, rol: u.rol }; },
+  lista() { const u = this.users(); return Object.keys(u).sort().map(k => ({ user: k, rol: u[k].rol })); },
+  list() { const w = this.quien(); return { ok: true, data: this.all().map(s => this.pub(s)), campos: this.campos(), user: w.user, rol: w.rol }; },
+  async post(action, { id, data, user, pass, lado, estado, campos, original, rol, actual, nueva }) {
     await new Promise(r => setTimeout(r, 350));
     if (action === 'login') {
-      if (String(user).toLowerCase() === 'gael' && pass === 'admin') return { ok: true, token: 'demo', user: 'gael' };
+      const u = this.users()[String(user).toLowerCase()];
+      if (u && u.pass === pass) return { ok: true, token: 'demo', user: String(user).toLowerCase(), rol: u.rol };
       throw new Error('Usuario o contraseña incorrectos.');
+    }
+    const w = this.quien();
+    const admin = () => { if (w.rol !== 'admin') throw new Error('Solo un administrador puede hacer esto.'); };
+    if (action === 'guardarCampos') {
+      admin();
+      const c = campos.map(x => ({ ...x, id: x.id || 'c_' + Math.random().toString(36).slice(2, 10) }));
+      store.set('campos_demo', JSON.stringify(c)); return { ok: true, campos: c };
+    }
+    if (action === 'usuarios') { admin(); return { ok: true, usuarios: this.lista() }; }
+    if (action === 'guardarUsuario') {
+      admin();
+      const u = this.users(), nu = String(user).toLowerCase();
+      if (!/^[a-z0-9._-]{3,20}$/.test(nu)) throw new Error('El usuario debe tener de 3 a 20 letras o números, sin espacios ni acentos.');
+      if (nu !== original && u[nu]) throw new Error(`Ya existe el usuario "${nu}".`);
+      if (!original && !pass) throw new Error('Escribe una contraseña.');
+      if (pass && pass.length < 8) throw new Error('La contraseña debe tener al menos 8 caracteres.');
+      if (original && u[original].rol === 'admin' && rol !== 'admin' && Object.keys(u).filter(k => k !== original && u[k].rol === 'admin').length === 0) throw new Error('Debe quedar al menos un administrador.');
+      const rec = original ? u[original] : {};
+      rec.rol = rol === 'capturista' ? 'capturista' : 'admin'; if (pass) rec.pass = pass;
+      if (original && original !== nu) delete u[original];
+      u[nu] = rec; this.saveUsers(u);
+      return { ok: true, usuarios: this.lista(), renombrado: !!original && original !== nu, yo: original === w.user };
+    }
+    if (action === 'eliminarUsuario') {
+      admin(); const u = this.users();
+      if (user === w.user) throw new Error('No puedes eliminar tu propio usuario.');
+      if (u[user].rol === 'admin' && Object.keys(u).filter(k => u[k].rol === 'admin').length <= 1) throw new Error('Debe quedar al menos un administrador.');
+      delete u[user]; this.saveUsers(u); return { ok: true, usuarios: this.lista() };
+    }
+    if (action === 'cambiarClave') {
+      const u = this.users();
+      if (u[w.user].pass !== actual) throw new Error('La contraseña actual no es correcta.');
+      if (String(nueva).length < 8) throw new Error('La nueva contraseña debe tener al menos 8 caracteres.');
+      u[w.user].pass = nueva; this.saveUsers(u); return { ok: true };
     }
     if (action === 'leerIne') {
       await new Promise(r => setTimeout(r, 700));
@@ -794,7 +942,7 @@ const demo = {
     const s0 = all.find(x => x.id === id);
     if (action === 'archivo') return { ok: true, imagen: lado === 'reverso' ? s0.ineReversoData : s0.ineFrenteData };
     if (action === 'estadoIne') { s0.ineEstado = estado; this.save(all); return { ok: true }; }
-    if (action === 'delete') { all.splice(all.indexOf(s0), 1); this.save(all); return { ok: true }; }
+    if (action === 'delete') { admin(); all.splice(all.indexOf(s0), 1); this.save(all); return { ok: true }; }
     const n = v => String(v || '').toUpperCase().replace(/[\s-]/g, '');
     if (!data.nombre) throw new Error('El nombre es obligatorio.');
     if (!data.numero) throw new Error('El número de socio es obligatorio.');
@@ -807,6 +955,8 @@ const demo = {
     const s = action === 'create' ? { id: crypto.randomUUID(), creado: now } : s0;
     Object.assign(s, { numero: data.numero, nombre: data.nombre, calle: data.calle, numExt: data.numExt, numInt: data.numInt, colonia: data.colonia, cp: data.cp, municipio: data.municipio, estado: data.estado, direccion: componerDireccion(data), nacimiento: data.nacimiento, concesion: (data.concesion || '').toUpperCase(), curp: (data.curp || '').toUpperCase(), claveElector: (data.claveElector || '').toUpperCase(), actualizado: now });
     if (data.ineEstado !== undefined) s.ineEstado = data.ineEstado;
+    for (const c of this.campos()) if (c.obligatorio && !(data.extras || {})[c.id]) throw new Error(`Falta "${c.etiqueta}".`);
+    s.extras = JSON.stringify({ ...extrasDe(s), ...(data.extras || {}) });
     if (data.fotoThumb) s.fotoThumb = data.fotoThumb; else if (data.quitarFoto) s.fotoThumb = '';
     if (data.ineFrente) s.ineFrenteData = data.ineFrente;
     if (data.ineReverso) s.ineReversoData = data.ineReverso;
@@ -865,6 +1015,8 @@ function faltantes(s) {
   if (!s.curp) f.push('CURP');
   if (!s.concesion) f.push('concesión');
   if (!direccionCompleta(s)) f.push('dirección');
+  const x = extrasDe(s);
+  CAMPOS.forEach(c => { if (c.obligatorio && !x[c.id]) f.push(c.etiqueta.toLowerCase()); });
   return f;
 }
 function direccionCompleta(s) { return Object.keys(DIR_REQ).every(k => s[k]) && /^\d{5}$/.test(s.cp || ''); }
@@ -874,7 +1026,21 @@ function titulo(s) {
     .map((w, i) => i > 0 && minus.includes(w) ? w : w.replace(/^(\p{L})/u, c => c.toUpperCase())).join(' ');
 }
 
-let session = { token: store.get('socios_token'), user: store.get('socios_user') };
+let session = { token: store.get('socios_token'), user: store.get('socios_user'), rol: store.get('socios_rol') || '' };
+let CAMPOS = [];   // campos personalizados del registro (los define un administrador)
+const extrasDe = s => { try { return JSON.parse(s.extras || '{}') || {}; } catch { return {}; } };
+const TIPOS = { texto: 'Texto', numero: 'Número', fecha: 'Fecha', sino: 'Sí / No', lista: 'Lista de opciones' };
+function valorExtra(c, v) {
+  if (!v) return '';
+  if (c.tipo === 'sino') return v === 'si' ? 'Sí' : 'No';
+  if (c.tipo === 'fecha') return fechaCorta(v);
+  return v;
+}
+function aplicarRol() {
+  const admin = session.rol === 'admin';
+  document.body.classList.toggle('es-capturista', !admin);
+  $('admBtn').hidden = !admin;
+}
 let socios = [];
 let filtro = 'todos';
 
@@ -903,6 +1069,7 @@ function showLogin(msg = '') {
 function showApp() {
   $('login').hidden = true; $('app').hidden = false;
   $('demo').hidden = !DEMO;
+  aplicarRol();
   const name = session.user ? session.user.charAt(0).toUpperCase() + session.user.slice(1) : '';
   $('who').textContent = name;
   const hoy = new Date(), h = hoy.getHours();
@@ -913,7 +1080,7 @@ function showApp() {
   load();
 }
 function logout(msg) {
-  store.del('socios_token'); store.del('socios_user');
+  store.del('socios_token'); store.del('socios_user'); store.del('socios_rol');
   session = {}; socios = [];
   document.querySelectorAll('.overlay.open').forEach(o => o.classList.remove('open'));
   showLogin(msg);
@@ -926,7 +1093,8 @@ $('loginForm').addEventListener('submit', async e => {
   try {
     const r = await api.post('login', { user: $('lu').value.trim(), pass: $('lp').value });
     session = { token: r.token, user: r.user };
-    store.set('socios_token', r.token); store.set('socios_user', r.user);
+    store.set('socios_token', r.token); store.set('socios_user', r.user); store.set('socios_rol', r.rol || '');
+    session.rol = r.rol || '';
     $('lp').value = '';
     showApp();
   } catch (err) {
@@ -943,7 +1111,7 @@ const FILTROS = {
   ineRevisar: { label: 'INE por revisar',    test: s => s.ineEstado === 'revisar' },
   sinIne:     { label: 'Sin INE',            test: s => !s.ineFrente && !s.ineReverso },
   sinFoto:    { label: 'Sin foto',           test: s => !photoSrc(s) },
-  incompletos:{ label: 'Datos incompletos',  test: s => !s.nacimiento || !s.curp || !s.concesion || !direccionCompleta(s) }
+  incompletos:{ label: 'Datos incompletos',  test: s => faltantes(s).length > 0 }
 };
 const VACIOS = {
   ineRevisar: ['¡Todas las INE están en orden!', 'No hay credenciales pendientes de revisar.'],
@@ -956,7 +1124,11 @@ function setFiltro(f) { filtro = f; render(); }
 async function load() {
   $('list').innerHTML = '<div class="loader"><i></i><i></i><i></i></div>';
   try {
-    socios = await api.list();
+    const r = await api.list();
+    socios = r.data || [];
+    CAMPOS = r.campos || [];
+    if (r.rol) { session.rol = r.rol; store.set('socios_rol', r.rol); }
+    aplicarRol();
     // Si la hoja quitó el cero inicial del C.P. (2160 → 02160), se recupera
     socios.forEach(x => { if (/^\d{1,4}$/.test(x.cp || '')) x.cp = x.cp.padStart(5, '0'); });
     socios.sort((a, b) => String(a.numero).localeCompare(String(b.numero), 'es', { numeric: true }));
@@ -981,7 +1153,7 @@ function ineChip(s) {
 function render() {
   const q = fold($('q').value.trim());
   const items = socios.filter(FILTROS[filtro].test)
-    .filter(s => !q || [s.nombre, s.numero, s.concesion, s.curp, s.colonia].some(v => fold(v).includes(q)));
+    .filter(s => !q || [s.nombre, s.numero, s.concesion, s.curp, s.colonia, ...Object.values(extrasDe(s))].some(v => fold(v).includes(q)));
 
   $('count').textContent = String(socios.length).padStart(2, '0');
   $('countLbl').textContent = socios.length === 1 ? 'socio registrado' : 'socios registrados';
@@ -1015,7 +1187,7 @@ function render() {
         <button onclick="event.stopPropagation();openForm('${esc(s.id)}')" aria-label="Editar">
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20h4L19 9l-4-4L4 16z"/></svg><span>Editar</span>
         </button>
-        <button onclick="event.stopPropagation();askDelete('${esc(s.id)}')" aria-label="Eliminar">
+        <button class="solo-admin" onclick="event.stopPropagation();askDelete('${esc(s.id)}')" aria-label="Eliminar">
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h16M9 7V4h6v3M6 7l1 13h10l1-13"/></svg><span>Eliminar</span>
         </button>
       </div>
@@ -1044,6 +1216,7 @@ function openDetail(id) {
       ${fila('Dirección', componerDireccion(s))}
       ${fila('CURP', s.curp, 'mono')}
       ${fila('Clave elector', s.claveElector, 'mono')}
+      ${(() => { const x = extrasDe(s); return CAMPOS.map(c => fila(esc(c.etiqueta), valorExtra(c, x[c.id]))).join(''); })()}
     </dl>
     <div class="ine-view">
       <figure><figcaption>INE · frente</figcaption><div class="box" id="iv-frente">${s.ineFrente ? 'Cargando…' : 'Sin imagen'}</div></figure>
@@ -1052,7 +1225,7 @@ function openDetail(id) {
     <div class="lock-note"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><rect x="4" y="11" width="16" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg>Las imágenes de la INE se guardan en una carpeta privada.</div>
     ${s.ineEstado === 'revisar' && s.ineFrente && s.ineReverso ? `<button class="btn btn-turq verify" id="verifyBtn" onclick="verificarIne('${esc(s.id)}')">✓ Revisé la INE: marcar como verificada</button>` : ''}
     <div class="sheet-actions">
-      <button class="btn btn-soft" onclick="closeOv('detOv');askDelete('${esc(s.id)}')" style="color:var(--coral)">Eliminar</button>
+      <button class="btn btn-soft solo-admin" onclick="closeOv('detOv');askDelete('${esc(s.id)}')" style="color:var(--coral)">Eliminar</button>
       <button class="btn btn-main" onclick="closeOv('detOv');openForm('${esc(s.id)}')">Editar</button>
     </div>`;
   openOv('detOv');
@@ -1115,6 +1288,7 @@ function openForm(id = null) {
   toggleAddr(false); resumenDireccion();
   AUTO_FIELDS.forEach(k => $('lf_' + k).classList.remove('auto'));
   setPick(s ? photoSrc(s) : '');
+  renderExtras(s ? extrasDe(s) : {});
   $('file').value = '';
   for (const lado of ['frente', 'reverso']) {
     const has = s && (lado === 'frente' ? s.ineFrente : s.ineReverso);
@@ -1620,6 +1794,9 @@ $('form').addEventListener('submit', async e => {
   if (data.curp && !CURP_RE.test(data.curp)) { toast('La CURP no tiene un formato válido', true); return $('f_curp').focus(); }
   const errDir = validarDireccion(true);
   if (errDir) { toggleAddr(true); $('addr').classList.add('err'); toast(errDir, true); $('addr').scrollIntoView({ behavior: 'smooth', block: 'center' }); return; }
+  const errX = validarExtras();
+  if (errX) { toast(errX, true); return; }
+  data.extras = leerExtras();
   const prev = editingId ? socios.find(x => x.id === editingId) : null;
   const est = estadoIneFinal(prev?.ineEstado);
   if (est !== undefined) data.ineEstado = est;
@@ -1746,6 +1923,171 @@ document.addEventListener('keydown', e => {
   if ($('editor').classList.contains('open')) return cerrarEditor();
   if ($('scanner').classList.contains('open')) return stopScan();
   document.querySelectorAll('.overlay.open,.lightbox.open').forEach(o => o.classList.remove('open'));
+});
+
+/* ================= CAMPOS PERSONALIZADOS EN EL FORMULARIO ================= */
+function renderExtras(valores) {
+  $('secExtras').hidden = !CAMPOS.length;
+  $('extras').innerHTML = CAMPOS.map(c => {
+    const v = valores[c.id] || '', req = c.obligatorio ? ' <span class="req">*</span>' : '';
+    let input;
+    if (c.tipo === 'sino') input = `<div class="seg" data-x="${c.id}" data-v="${esc(v)}"><button type="button" data-val="si" class="${v === 'si' ? 'on' : ''}">Sí</button><button type="button" data-val="no" class="${v === 'no' ? 'on' : ''}">No</button></div>`;
+    else if (c.tipo === 'lista') input = `<div class="inp"><select data-x="${c.id}"><option value="">Elige…</option>${c.opciones.map(o => `<option${o === v ? ' selected' : ''}>${esc(o)}</option>`).join('')}</select></div>`;
+    else if (c.tipo === 'fecha') input = `<div class="inp"><input type="date" data-x="${c.id}" value="${esc(v)}"></div>`;
+    else if (c.tipo === 'numero') input = `<div class="inp"><input inputmode="decimal" data-x="${c.id}" value="${esc(v)}"></div>`;
+    else input = `<div class="inp"><input data-x="${c.id}" maxlength="500" value="${esc(v)}"></div>`;
+    return `<div class="lf" id="lfx_${c.id}"><label>${esc(c.etiqueta)}${req}</label>${input}<span class="msg"></span></div>`;
+  }).join('');
+}
+$('extras').addEventListener('click', e => {
+  const b = e.target.closest('.seg button'); if (!b) return;
+  const seg = b.parentElement, val = seg.dataset.v === b.dataset.val ? '' : b.dataset.val;
+  seg.dataset.v = val;
+  seg.querySelectorAll('button').forEach(x => x.classList.toggle('on', x.dataset.val === val));
+});
+['input', 'change', 'click'].forEach(t => $('extras').addEventListener(t, e => {
+  const lf = e.target.closest('.lf'); if (lf && lf.classList.contains('bad')) { lf.classList.remove('bad'); }
+}));
+function leerExtras() {
+  const o = {};
+  CAMPOS.forEach(c => { const el = document.querySelector(`[data-x="${c.id}"]`); if (el) o[c.id] = (c.tipo === 'sino' ? el.dataset.v : el.value).trim(); });
+  return o;
+}
+function validarExtras() {
+  const x = leerExtras(); let primero = '';
+  CAMPOS.forEach(c => {
+    const lf = $('lfx_' + c.id); if (!lf) return;
+    let m = '';
+    if (c.obligatorio && !x[c.id]) m = 'Falta este dato';
+    else if (c.tipo === 'numero' && x[c.id] && !/^-?\d+([.,]\d+)?$/.test(x[c.id])) m = 'Escribe solo números';
+    lf.classList.toggle('bad', !!m); lf.querySelector('.msg').textContent = m;
+    if (m && !primero) { primero = `${c.etiqueta}: ${m.toLowerCase()}`; lf.scrollIntoView({ behavior: 'smooth', block: 'center' }); }
+  });
+  return primero;
+}
+
+/* ================= ADMINISTRAR ================= */
+let USUARIOS = [], editCampo = null, editUser = null;
+function abrirAdmin() { verTab('campos'); $('campoEd').hidden = true; $('userEd').hidden = true; renderCampos(); openOv('admOv'); }
+function verTab(t) {
+  $('tab-campos').hidden = t !== 'campos'; $('tab-usuarios').hidden = t !== 'usuarios';
+  $('tabBtnCampos').classList.toggle('on', t === 'campos'); $('tabBtnUsuarios').classList.toggle('on', t === 'usuarios');
+  if (t === 'usuarios') cargarUsuarios();
+}
+// Botón eliminar de dos toques: el primero pregunta, el segundo elimina
+function dosToques(btn, accion) {
+  if (btn.classList.contains('confirm')) return accion();
+  document.querySelectorAll('.del.confirm').forEach(b => { b.classList.remove('confirm'); b.textContent = '🗑'; });
+  btn.classList.add('confirm'); btn.textContent = '¿Eliminar?';
+  setTimeout(() => { if (btn.isConnected) { btn.classList.remove('confirm'); btn.textContent = '🗑'; } }, 3500);
+}
+
+function renderCampos() {
+  $('camposList').innerHTML = CAMPOS.length ? CAMPOS.map((c, i) => `
+    <div class="crow">
+      <div class="ci"><b>${esc(c.etiqueta)}</b><small>${TIPOS[c.tipo]}${c.tipo === 'lista' ? ` (${c.opciones.length})` : ''}${c.obligatorio ? ' · Obligatorio' : ' · Opcional'}</small></div>
+      <div class="acts">
+        <button onclick="moverCampo(${i},-1)" ${i === 0 ? 'disabled' : ''} aria-label="Subir">↑</button>
+        <button onclick="moverCampo(${i},1)" ${i === CAMPOS.length - 1 ? 'disabled' : ''} aria-label="Bajar">↓</button>
+        <button onclick="editarCampo(${i})" aria-label="Editar">✏️</button>
+        <button class="del" onclick="dosToques(this,()=>borrarCampo(${i}))" aria-label="Eliminar">🗑</button>
+      </div>
+    </div>`).join('') : '<div class="vacio-box">Aún no hay campos personalizados. Agrega uno para pedir más datos en el registro.</div>';
+}
+function editarCampo(i) {
+  editCampo = i;
+  const c = i === null ? { etiqueta: '', tipo: 'texto', opciones: [], obligatorio: false } : CAMPOS[i];
+  $('campoEdT').textContent = i === null ? 'Nuevo campo' : 'Editar campo';
+  $('ce_etq').value = c.etiqueta; $('ce_tipo').value = c.tipo; $('ce_obl').checked = c.obligatorio;
+  $('ce_ops').value = (c.opciones || []).join('\n'); $('ce_opsBox').hidden = c.tipo !== 'lista';
+  $('campoEd').hidden = false; $('campoEd').scrollIntoView({ behavior: 'smooth', block: 'center' });
+  setTimeout(() => $('ce_etq').focus(), 200);
+}
+async function guardarCampos(lista, msg, btn) {
+  if (btn) { btn.disabled = true; btn._t = btn.textContent; btn.textContent = 'Guardando…'; }
+  try {
+    const r = await api.post('guardarCampos', { campos: lista });
+    CAMPOS = r.campos; renderCampos(); render(); toast(msg); return true;
+  } catch (err) { if (err.auth) { closeOv('admOv'); logout(err.message); } else toast(err.message, true); return false; }
+  finally { if (btn) { btn.disabled = false; btn.textContent = btn._t; } }
+}
+async function guardarCampo() {
+  const etiqueta = $('ce_etq').value.trim().replace(/\s+/g, ' ');
+  const tipo = $('ce_tipo').value;
+  const opciones = $('ce_ops').value.split('\n').map(x => x.trim()).filter(Boolean);
+  if (!etiqueta) { toast('Escribe el nombre del campo', true); return $('ce_etq').focus(); }
+  if (CAMPOS.some((c, i) => i !== editCampo && c.etiqueta.toLowerCase() === etiqueta.toLowerCase())) return toast('Ya existe un campo con ese nombre', true);
+  if (tipo === 'lista' && opciones.length < 2) { toast('La lista necesita al menos 2 opciones', true); return $('ce_ops').focus(); }
+  const c = { ...(editCampo !== null ? CAMPOS[editCampo] : {}), etiqueta, tipo, opciones: tipo === 'lista' ? opciones : [], obligatorio: $('ce_obl').checked };
+  const lista = [...CAMPOS];
+  if (editCampo === null) lista.push(c); else lista[editCampo] = c;
+  if (await guardarCampos(lista, editCampo === null ? `✓ Campo "${etiqueta}" agregado` : '✓ Campo actualizado', $('ce_save'))) $('campoEd').hidden = true;
+}
+function moverCampo(i, d) { const l = [...CAMPOS]; [l[i], l[i + d]] = [l[i + d], l[i]]; guardarCampos(l, '✓ Orden actualizado'); }
+function borrarCampo(i) { const n = CAMPOS[i].etiqueta; guardarCampos(CAMPOS.filter((_, j) => j !== i), `Campo "${n}" eliminado (los datos ya capturados se conservan)`); }
+
+async function cargarUsuarios() {
+  try { USUARIOS = (await api.post('usuarios')).usuarios; renderUsuarios(); }
+  catch (err) { if (err.auth) { closeOv('admOv'); return logout(err.message); } $('usersList').innerHTML = `<div class="vacio-box">${esc(err.message)}</div>`; }
+}
+function renderUsuarios() {
+  $('usersList').innerHTML = USUARIOS.map(u => `
+    <div class="crow">
+      <div class="av">${esc(u.user[0].toUpperCase())}</div>
+      <div class="ci"><b>${esc(u.user)}${u.user === session.user ? ' <span class="st info">tú</span>' : ''}</b><small>${u.rol === 'admin' ? 'Administrador' : 'Capturista'}</small></div>
+      <div class="acts">
+        <button onclick="editarUsuario('${esc(u.user)}')" aria-label="Editar">✏️</button>
+        ${u.user === session.user ? '' : `<button class="del" onclick="dosToques(this,()=>borrarUsuario('${esc(u.user)}'))" aria-label="Eliminar">🗑</button>`}
+      </div>
+    </div>`).join('');
+}
+function editarUsuario(user) {
+  editUser = user;
+  const u = USUARIOS.find(x => x.user === user);
+  $('userEdT').textContent = user ? `Editar a ${user}` : 'Nuevo usuario';
+  $('ue_user').value = user || ''; $('ue_pass').value = ''; $('ue_pass').type = 'password';
+  $('ue_passL').textContent = user ? 'Nueva contraseña (déjala vacía para no cambiarla)' : 'Contraseña';
+  $('ue_rol').value = u ? u.rol : 'capturista';
+  $('userEd').hidden = false; $('userEd').scrollIntoView({ behavior: 'smooth', block: 'center' });
+  setTimeout(() => $('ue_user').focus(), 200);
+}
+async function guardarUsuario() {
+  const user = $('ue_user').value.trim().toLowerCase(), pass = $('ue_pass').value, rol = $('ue_rol').value;
+  if (!/^[a-z0-9._-]{3,20}$/.test(user)) { toast('Usuario: de 3 a 20 letras o números, sin espacios ni acentos', true); return $('ue_user').focus(); }
+  if (!editUser && !pass) { toast('Escribe una contraseña', true); return $('ue_pass').focus(); }
+  if (pass && pass.length < 8) { toast('La contraseña debe tener al menos 8 caracteres', true); return $('ue_pass').focus(); }
+  const btn = $('ue_save'); btn.disabled = true; btn.textContent = 'Guardando…';
+  try {
+    const r = await api.post('guardarUsuario', { original: editUser || '', user, pass, rol });
+    USUARIOS = r.usuarios; renderUsuarios(); $('userEd').hidden = true;
+    toast(editUser ? `✓ Usuario ${user} actualizado` : `✓ Usuario ${user} creado`);
+    if (r.yo && (r.renombrado || pass)) { closeOv('admOv'); return logout('Tus datos de acceso cambiaron. Entra de nuevo.'); }
+    if (r.yo && rol !== 'admin') { closeOv('admOv'); session.rol = rol; store.set('socios_rol', rol); aplicarRol(); }
+  } catch (err) { if (err.auth) { closeOv('admOv'); return logout(err.message); } toast(err.message, true); }
+  finally { btn.disabled = false; btn.textContent = 'Guardar usuario'; }
+}
+async function borrarUsuario(user) {
+  try { USUARIOS = (await api.post('eliminarUsuario', { user })).usuarios; renderUsuarios(); toast(`Usuario ${user} eliminado`); }
+  catch (err) { if (err.auth) { closeOv('admOv'); return logout(err.message); } toast(err.message, true); }
+}
+
+/* ---------- Mi cuenta ---------- */
+function abrirCuenta() {
+  $('cuentaSub').textContent = `${session.user} · ${session.rol === 'admin' ? 'Administrador' : 'Capturista'}`;
+  $('cu_user').value = session.user || '';
+  ['cu_act', 'cu_new', 'cu_rep'].forEach(k => $(k).value = '');
+  openOv('cuentaOv'); setTimeout(() => $('cu_act').focus(), 200);
+}
+$('cuentaForm').addEventListener('submit', async e => {
+  e.preventDefault();
+  const actual = $('cu_act').value, nueva = $('cu_new').value;
+  if (!actual) { toast('Escribe tu contraseña actual', true); return $('cu_act').focus(); }
+  if (nueva.length < 8) { toast('La nueva contraseña debe tener al menos 8 caracteres', true); return $('cu_new').focus(); }
+  if (nueva !== $('cu_rep').value) { toast('Las contraseñas nuevas no coinciden', true); return $('cu_rep').focus(); }
+  const btn = $('cu_save'); btn.disabled = true; btn.textContent = 'Guardando…';
+  try { await api.post('cambiarClave', { actual, nueva }); closeOv('cuentaOv'); toast('✓ Contraseña cambiada'); }
+  catch (err) { if (err.auth) { closeOv('cuentaOv'); return logout(err.message); } toast(err.message, true); }
+  finally { btn.disabled = false; btn.textContent = 'Cambiar contraseña'; }
 });
 
 /* ================= APP INSTALABLE ================= */
