@@ -13,8 +13,8 @@
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
-<meta name="apple-mobile-web-app-title" content="Socios">
-<meta name="application-name" content="Socios">
+<meta name="apple-mobile-web-app-title" content="Registro Socios">
+<meta name="application-name" content="Registro Socios">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,600;12..96,800&family=Space+Mono:wght@700&display=swap" rel="stylesheet">
@@ -2569,7 +2569,7 @@ window.addEventListener('beforeinstallprompt', e => {
     toast('✓ Listo: toca “Instalar” y se instala con un clic');
   }
 });
-window.addEventListener('appinstalled', () => { try { localStorage.setItem('app_instalada', '1'); } catch {} promptInstalar = null; yaInstalada = true; mostrarInstalar(); toast('✓ App instalada: búscala como “Socios”'); });
+window.addEventListener('appinstalled', () => { try { localStorage.setItem('app_instalada', '1'); } catch {} promptInstalar = null; yaInstalada = true; mostrarInstalar(); toast('✓ App instalada: búscala como “Registro Socios”'); });
 async function instalarApp() {
   // Chrome y Edge avisan que se puede instalar unos segundos después de abrir la página: si aún no avisan, esperamos un momento
   if (!promptInstalar && ['chrome', 'edge', 'brave', 'opera'].includes(navegador()) && !esIOS()) {
@@ -2578,7 +2578,7 @@ async function instalarApp() {
     for (let i = 0; i < 20 && !promptInstalar; i++) await new Promise(r => setTimeout(r, 150));
     btns.forEach(b => { b.disabled = false; b.innerHTML = b.dataset.t; });
     if (!promptInstalar) await revisarInstalada();
-    if (yaInstalada) return toast('✓ La app ya está instalada en este dispositivo: búscala como “Socios”');
+    if (yaInstalada) return toast('✓ La app ya está instalada en este dispositivo: búscala como “Registro Socios”');
   }
   if (promptInstalar) {
     promptInstalar.prompt();
