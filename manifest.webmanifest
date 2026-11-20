@@ -29,31 +29,5 @@
       "type": "image/png",
       "purpose": "maskable"
     }
-  ],
-  "categories": [
-    "business",
-    "productivity"
-  ],
-  "screenshots": [
-    {
-      "src": "screenshot-wide.png",
-      "sizes": "1280x800",
-      "type": "image/png",
-      "form_factor": "wide",
-      "label": "Registro de socios en computadora"
-    },
-    {
-      "src": "screenshot-narrow.png",
-      "sizes": "390x844",
-      "type": "image/png",
-      "form_factor": "narrow",
-      "label": "Registro de socios en celular"
-    }
-  ],
-  "related_applications": [
-    {
-      "platform": "webapp",
-      "url": "https://digilabweb.github.io/RegistroSocios/manifest.webmanifest"
-    }
   ]
 }

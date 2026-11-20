@@ -1,7 +1,7 @@
 /* Registro de Socios — service worker
    Permite instalar la app y abrirla rápido. Los datos de socios SIEMPRE
    se piden en línea a Google (nunca se guardan aquí). */
-const VERSION = 'socios-v10';
+const VERSION = 'socios-v12';
 const BASICOS = ['./', './index.html', './logo.png', './favicon.ico', './favicon-32.png',
   './apple-touch-icon.png', './icon-192.png', './icon-512.png', './icon-maskable-512.png', './manifest.webmanifest'];
 

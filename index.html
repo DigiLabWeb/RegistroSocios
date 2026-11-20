@@ -2494,6 +2494,7 @@ function navegador() {
   return 'otro';
 }
 let yaInstalada = false;
+try { yaInstalada = localStorage.getItem('app_instalada') === '1'; } catch {}
 // ¿Ya está instalada en ESTE dispositivo? (Chrome y Edge lo pueden saber)
 async function revisarInstalada() {
   if (!navigator.getInstalledRelatedApps) return;
@@ -2527,6 +2528,10 @@ function pasosInstalar() {
   if (esIOS()) return { sub: 'Queda en tu pantalla de inicio y se abre como cualquier app.', pasos: [
     `Toca el botón <b>Compartir</b> ${ico('⬆︎')} (en Safari está abajo; en Chrome, arriba a la derecha).`,
     `Elige <b>“Agregar a pantalla de inicio”</b> ${ico('agregar')}.`, 'Toca <b>Agregar</b>. Busca el ícono <b>Socios</b>.'] };
+  if (esAndroid() && nav === 'samsung') return { sub: 'Queda con tus apps y se abre a pantalla completa.', pasos: [
+    `Toca el ícono de instalar ${ico('⊕')} en la barra de direcciones (si aparece).`,
+    `Si no: toca el menú ${ico('≡')} (abajo a la derecha) → <b>“Añadir página a”</b> → <b>“Pantalla de inicio”</b>.`,
+    'Toca <b>Añadir</b>. El ícono <b>Socios</b> aparecerá con tus apps.'] };
   if (esAndroid()) return { sub: 'Queda con tus apps y se abre a pantalla completa.', pasos: [
     `Abre el menú del navegador ${ico('⋮')} (arriba a la derecha).`,
     'Elige <b>“Instalar app”</b> o <b>“Agregar a pantalla principal”</b>.', 'Confirma. El ícono <b>Socios</b> aparecerá con tus apps.'],
@@ -2557,17 +2562,17 @@ function pasosInstalar() {
 // Cuando avisa, el botón se "enciende" y basta un clic para instalar.
 let pidioInstalar = false;
 window.addEventListener('beforeinstallprompt', e => {
-  e.preventDefault(); promptInstalar = e; yaInstalada = false; mostrarInstalar();
+  e.preventDefault(); promptInstalar = e; yaInstalada = false; try { localStorage.removeItem('app_instalada'); } catch {} mostrarInstalar();
   document.querySelectorAll('#instTop, #instLogin').forEach(el => el.classList.add('listo'));
   if (pidioInstalar) {
     closeOv('instOv');
     toast('✓ Listo: toca “Instalar” y se instala con un clic');
   }
 });
-window.addEventListener('appinstalled', () => { promptInstalar = null; yaInstalada = true; mostrarInstalar(); toast('✓ App instalada: búscala como “Socios”'); });
+window.addEventListener('appinstalled', () => { try { localStorage.setItem('app_instalada', '1'); } catch {} promptInstalar = null; yaInstalada = true; mostrarInstalar(); toast('✓ App instalada: búscala como “Socios”'); });
 async function instalarApp() {
   // Chrome y Edge avisan que se puede instalar unos segundos después de abrir la página: si aún no avisan, esperamos un momento
-  if (!promptInstalar && ['chrome', 'edge', 'brave', 'samsung', 'opera'].includes(navegador()) && !esIOS()) {
+  if (!promptInstalar && ['chrome', 'edge', 'brave', 'opera'].includes(navegador()) && !esIOS()) {
     const btns = document.querySelectorAll('#instTop, #instLogin .ic-btn');
     btns.forEach(b => { b.dataset.t = b.innerHTML; b.disabled = true; b.innerHTML = 'Preparando…'; });
     for (let i = 0; i < 20 && !promptInstalar; i++) await new Promise(r => setTimeout(r, 150));
