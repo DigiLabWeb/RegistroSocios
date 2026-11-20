@@ -3,7 +3,7 @@
   "short_name": "Socios",
   "description": "Registro de socios del Sindicato de Taxistas Lázaro Cárdenas del Río",
   "lang": "es-MX",
-  "id": "./",
+  "id": "/RegistroSocios/",
   "start_url": "./",
   "scope": "./",
   "display": "standalone",
