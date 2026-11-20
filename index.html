@@ -70,7 +70,12 @@
   .lf label{display:block;font-size:.8rem;font-weight:800;text-transform:uppercase;letter-spacing:1px;color:var(--muted);margin:0 0 6px 4px}
   .inp{display:flex;align-items:center;background:var(--foam);border:2px solid transparent;border-radius:16px;transition:border .2s,background .2s}
   .inp:focus-within{border-color:var(--turq);background:#fff}
-  .inp input{flex:1;min-width:0;border:none;background:transparent;padding:14px 16px;font-size:1.05rem;outline:none}
+  .inp{max-width:100%}
+  .inp input{flex:1;min-width:0;width:100%;border:none;background:transparent;padding:14px 16px;font-size:1.05rem;outline:none;border-radius:14px}
+  .inp{overflow:hidden}
+  /* Relleno automático del navegador: mismo fondo y bordes que el recuadro */
+  .inp input:-webkit-autofill,.inp input:-webkit-autofill:hover,.inp input:-webkit-autofill:focus{-webkit-box-shadow:0 0 0 1000px var(--foam) inset!important;box-shadow:0 0 0 1000px var(--foam) inset!important;-webkit-text-fill-color:var(--ink);caret-color:var(--ink);transition:background-color 99999s ease-out}
+  .inp:focus-within input:-webkit-autofill{-webkit-box-shadow:0 0 0 1000px #fff inset!important;box-shadow:0 0 0 1000px #fff inset!important}
   .inp button{padding:0 14px;color:var(--muted)}
   .login-err{color:var(--coral);font-weight:600;font-size:.9rem;text-align:center;margin-top:14px;min-height:1.2em}
   .badge .btn{width:100%;margin-top:14px;font-size:1.05rem}
@@ -404,6 +409,19 @@
   .ed-actions{display:grid;grid-template-columns:1fr 1.5fr;gap:10px;padding:8px 16px calc(18px + env(safe-area-inset-bottom));width:100%;max-width:560px;margin:0 auto}
   .ed-repeat{background:rgba(255,255,255,.12);color:#fff}
   .ed-side{display:flex;flex-direction:column}
+  #edSvg{position:absolute;left:0;top:0;overflow:visible;touch-action:none;pointer-events:none}
+  #edSvg .fuera{fill:rgba(5,20,22,.66);fill-rule:evenodd}
+  #edSvg polygon{fill:rgba(0,255,255,.06);stroke:var(--cyan);stroke-width:2.5;stroke-linejoin:round;pointer-events:all;cursor:move;transition:stroke .2s}
+  .ed-stage.good #edSvg polygon{stroke:#3ddc84}
+  .ed-stage.bad #edSvg polygon{stroke:#ffb020}
+  .qh{position:absolute;width:30px;height:30px;margin:-15px 0 0 -15px;border-radius:50%;border:3px solid #fff;background:rgba(0,255,255,.35);box-shadow:0 0 0 2px rgba(0,0,0,.35);touch-action:none;cursor:grab;z-index:2}
+  .qh::before{content:'';position:absolute;inset:-14px;border-radius:50%}
+  .qh:active{cursor:grabbing;background:rgba(0,255,255,.7)}
+  .ed-prev-l{align-self:center;font-size:.72rem;opacity:.75;margin-top:2px}
+  #edPrev{display:block;align-self:center;width:180px;height:auto;aspect-ratio:1.585;border-radius:8px;margin:4px 0 2px;box-shadow:0 4px 14px rgba(0,0,0,.45);background:#fff}
+  @media (max-height:700px){ #edPrev{width:130px} }
+  .ed-prev-row{display:flex;align-items:center;justify-content:center;gap:10px}
+  .ed-180{display:flex;flex-direction:column;align-items:center;gap:3px;color:#fff;background:rgba(255,255,255,.12);border-radius:12px;padding:8px 10px;font-size:.7rem;font-weight:800;line-height:1.1}
 
   /* --- Administración --- */
   .es-capturista .solo-admin{display:none!important}
@@ -725,23 +743,25 @@
 <div class="editor" id="editor">
   <div class="ed-top">
     <button class="scan-x" onclick="cerrarEditor()" aria-label="Cancelar">✕</button>
-    <div><b id="edTitle">Ajusta el frente</b><span>Arrastra las esquinas para dejar solo la credencial</span></div>
+    <div><b id="edTitle">Ajusta el frente</b><span>Coloca los 4 puntos en las esquinas de la credencial</span></div>
   </div>
   <div class="ed-stage" id="edStage">
     <canvas id="edCanvas"></canvas>
-    <div class="ed-box" id="edBox">
-      <div class="grid3"></div>
-      <i class="h tl" data-h="tl"></i><i class="h tr" data-h="tr"></i><i class="h bl" data-h="bl"></i><i class="h br" data-h="br"></i>
-      <i class="e t" data-h="t"></i><i class="e b" data-h="b"></i><i class="e l" data-h="l"></i><i class="e r" data-h="r"></i>
-    </div>
+    <svg id="edSvg"><path class="fuera" id="edFuera"/><polygon id="edPoly"/></svg>
+    <i class="qh" data-i="0"></i><i class="qh" data-i="1"></i><i class="qh" data-i="2"></i><i class="qh" data-i="3"></i>
   </div>
   <div class="ed-side">
   <div class="ed-q" id="edQ"></div>
+  <span class="ed-prev-l">Así se guardará:</span>
+  <div class="ed-prev-row">
+    <canvas id="edPrev" width="480" height="303"></canvas>
+    <button type="button" class="ed-180" onclick="edVuelta()" aria-label="Girar 180 grados"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 1 1-3-6.7L21 8"/><path d="M21 3v5h-5"/></svg>Girar<br>180°</button>
+  </div>
   <div class="ed-tools">
     <button onclick="edRotar(-90)"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 3-6.7L3 8"/><path d="M3 3v5h5"/></svg>Girar</button>
     <button onclick="edRotar(90)"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 1 1-3-6.7L21 8"/><path d="M21 3v5h-5"/></svg>Girar</button>
     <button onclick="edVoltear()"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v18"/><path d="M8 7 3 12l5 5V7zM16 7l5 5-5 5V7z"/></svg>Voltear</button>
-    <button onclick="edReset()"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3h6M3 3v6M21 21h-6M21 21v-6M21 3h-6M21 3v6M3 21h6M3 21v-6"/></svg>Restablecer</button>
+    <button onclick="edReset()"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3h6M3 3v6M21 21h-6M21 21v-6M21 3h-6M21 3v6M3 21h6M3 21v-6"/></svg>Detectar</button>
   </div>
   <div class="ed-actions">
     <button class="btn ed-repeat" onclick="repetirEscaneo()">Repetir</button>
@@ -841,7 +861,7 @@
 <script>
 /* ================= CONFIGURACIÓN ================= */
 const CONFIG = {
-  API_URL: 'https://script.google.com/macros/s/AKfycbx5TF24HKjNQ8rrP6TLqbVpCfB_JGn6_M_vjKhXMz0VjWlAxJIbbuMx10T_Z5fFzTI/exec'
+  API_URL: 'https://script.google.com/macros/s/AKfycbwF0OsMRsBRZNVxffk60wjYWGfECimoWt_FEjUM2v7sJq_nELEHpT4pztcplS5Tp64/exec'
 };
 // Usuarios y contraseñas viven en Code.gs (no aquí).
 
@@ -890,7 +910,7 @@ const DEMO_TXT = {
 const demo = {
   all() { try { return JSON.parse(store.get('socios_demo4') || '[]'); } catch { return []; } },
   save(v) { store.set('socios_demo4', JSON.stringify(v)); },
-  pub(s) { const p = { ...s, ineFrente: !!s.ineFrenteData, ineReverso: !!s.ineReversoData }; delete p.ineFrenteData; delete p.ineReversoData; return p; },
+  pub(s) { const p = { ...s, ineFrente: !!s.ineFrenteData, ineReverso: !!s.ineReversoData }; delete p.ineFrenteData; delete p.ineReversoData; delete p.ineFrenteMini; delete p.ineReversoMini; return p; },
   users() { try { return JSON.parse(store.get('users_demo')) || { gael: { pass: 'admin', rol: 'admin' } }; } catch { return { gael: { pass: 'admin', rol: 'admin' } }; } },
   saveUsers(u) { store.set('users_demo', JSON.stringify(u)); },
   campos() { try { return JSON.parse(store.get('campos_demo') || '[]'); } catch { return []; } },
@@ -946,7 +966,12 @@ const demo = {
     }
     const all = this.all(), now = new Date().toISOString();
     const s0 = all.find(x => x.id === id);
-    if (action === 'archivo') return { ok: true, imagen: lado === 'reverso' ? s0.ineReversoData : s0.ineFrenteData };
+    if (action === 'archivo') { await new Promise(r => setTimeout(r, 900)); return { ok: true, imagen: lado === 'reverso' ? s0.ineReversoData : s0.ineFrenteData }; }
+    if (action === 'ineMini') {
+      const faltan = []; if (s0.ineFrenteData && !s0.ineFrenteMini) faltan.push('frente'); if (s0.ineReversoData && !s0.ineReversoMini) faltan.push('reverso');
+      return { ok: true, frente: s0.ineFrenteMini || '', reverso: s0.ineReversoMini || '', faltan };
+    }
+    if (action === 'guardarMini') { const k = lado === 'reverso' ? 'ineReversoMini' : 'ineFrenteMini'; if (!s0[k]) { s0[k] = arguments[1].mini; this.save(all); } return { ok: true }; }
     if (action === 'estadoIne') { s0.ineEstado = estado; this.save(all); return { ok: true }; }
     if (action === 'delete') { admin(); all.splice(all.indexOf(s0), 1); this.save(all); return { ok: true }; }
     const n = v => String(v || '').toUpperCase().replace(/[\s-]/g, '');
@@ -965,8 +990,8 @@ const demo = {
     for (const c of this.campos()) if (c.obligatorio && !(data.extras || {})[c.id]) throw new Error(`Falta "${c.etiqueta}".`);
     s.extras = JSON.stringify({ ...extrasDe(s), ...(data.extras || {}) });
     if (data.fotoThumb) s.fotoThumb = data.fotoThumb; else if (data.quitarFoto) s.fotoThumb = '';
-    if (data.ineFrente) s.ineFrenteData = data.ineFrente;
-    if (data.ineReverso) s.ineReversoData = data.ineReverso;
+    if (data.ineFrente) { s.ineFrenteData = data.ineFrente; s.ineFrenteMini = data.ineFrenteMini || ''; }
+    if (data.ineReverso) { s.ineReversoData = data.ineReverso; s.ineReversoMini = data.ineReversoMini || ''; }
     if (action === 'create') all.push(s);
     this.save(all);
     return { ok: true, id: s.id };
@@ -1245,17 +1270,58 @@ function openDetail(id) {
       <button class="btn btn-main" onclick="closeOv('detOv');openForm('${esc(s.id)}')">Editar</button>
     </div>`;
   openOv('detOv');
-  ['frente', 'reverso'].forEach(async lado => {
-    if (!(lado === 'frente' ? s.ineFrente : s.ineReverso)) return;
-    const box = $('iv-' + lado), key = s.id + lado + s.actualizado;
-    try {
-      const src = ineCache[key] || (ineCache[key] = (await api.post('archivo', { id: s.id, lado })).imagen);
-      if (box.isConnected) { box.innerHTML = `<img src="${src}" alt="INE ${lado}">`; box.onclick = () => zoom(src); }
-    } catch (err) {
-      if (err.auth) return logout(err.message);
-      box.textContent = 'No se pudo cargar';
+  cargarIne(s);
+}
+
+/* ---------- INE en la ficha: carga rápida ----------
+   1) Se piden las dos copias ligeras en UNA sola petición (sin abrir Drive) y se guardan en memoria.
+   2) La imagen completa solo se descarga si se toca para ampliarla.
+   3) Si una INE antigua no tiene copia ligera, se descarga una vez, el teléfono la genera y la guarda. */
+async function cargarIne(s) {
+  const lados = ['frente', 'reverso'].filter(l => l === 'frente' ? s.ineFrente : s.ineReverso);
+  if (!lados.length) return;
+  const key = s.id + s.actualizado;
+  const pintar = (lado, src) => {
+    const box = $('iv-' + lado);
+    if (!box || !box.isConnected || !src) return;
+    box.innerHTML = `<img src="${src}" alt="INE ${lado}">`;
+    box.onclick = () => ampliarIne(s, lado, src);
+  };
+  try {
+    let r = ineCache[key];
+    if (!r) {
+      r = await api.post('ineMini', { id: s.id });
+      if (r.frente || r.reverso) ineCache[key] = r;
     }
-  });
+    lados.forEach(l => pintar(l, r[l]));
+    for (const lado of r.faltan || []) {          // INE guardadas antes de esta versión
+      const full = (await api.post('archivo', { id: s.id, lado })).imagen;
+      ineCache[key + lado + 'full'] = full;
+      const img = await new Promise((ok, mal) => { const i = new Image(); i.onload = () => ok(i); i.onerror = mal; i.src = full; });
+      const mini = miniDe(img);
+      r[lado] = mini; ineCache[key] = r;
+      pintar(lado, mini);
+      api.post('guardarMini', { id: s.id, lado, mini }).catch(() => {});
+    }
+  } catch (err) {
+    if (err.auth) return logout(err.message);
+    lados.forEach(l => { const b = $('iv-' + l); if (b && !b.querySelector('img')) b.textContent = 'No se pudo cargar'; });
+  }
+}
+async function ampliarIne(s, lado, mini) {
+  zoom(mini);                                         // se ve al instante la copia ligera…
+  const k = s.id + s.actualizado + lado + 'full';
+  try {
+    const full = ineCache[k] || (ineCache[k] = (await api.post('archivo', { id: s.id, lado })).imagen);
+    if ($('lightbox').classList.contains('open') && $('lightImg').src === mini) $('lightImg').src = full;   // …y luego en alta calidad
+  } catch {}
+}
+// Copia ligera de la INE (cabe en una celda de la hoja: < 46 000 caracteres)
+function miniDe(src) {
+  let m = toJpeg(src, 620, 0.62);
+  if (m.length > 46000) m = toJpeg(src, 520, 0.55);
+  if (m.length > 46000) m = toJpeg(src, 420, 0.5);
+  return m;
 }
 async function verificarIne(id) {
   const b = $('verifyBtn'); b.disabled = true; b.textContent = 'Guardando…';
@@ -1461,19 +1527,275 @@ $('ineFile').addEventListener('change', async e => {
   } catch (err) { toast(err.message, true); }
 });
 
-/* ---------- Editor: recortar, girar, voltear y aceptar ---------- */
-const ed = { lado: null, base: null, W: null, rot: 0, flip: false, crop: null, cropInicial: null, origen: '', escala: 1, drag: null, disp: null };
-const CROP_DEF = { x: 0.03, y: 0.03, w: 0.94, h: 0.94 };
+/* ---------- Editor: detectar la credencial, enderezarla y quitar el fondo ---------- */
+const ed = { lado: null, base: null, W: null, rot: 0, flip: false, quad: null, origen: '', escala: 1, drag: null, disp: null, hint: null, detectado: false, vuelta: false };
+const RATIO_INE = 1.585;
 const clamp = (v, a, b) => Math.min(Math.max(v, a), b);
+const rectQuad = r => [{ x: r.x, y: r.y }, { x: r.x + r.w, y: r.y }, { x: r.x + r.w, y: r.y + r.h }, { x: r.x, y: r.y + r.h }];
 
-function abrirEditor(lado, canvas, crop, origen, escala = 1) {
-  Object.assign(ed, { lado, base: canvas, rot: 0, flip: false, origen, escala, cropInicial: crop ? { ...crop } : null });
+/* Detección automática de las 4 esquinas de la credencial (sin librerías) */
+function detectarCredencial(canvas, hint) {
+  const k = Math.min(1, 360 / Math.max(canvas.width, canvas.height));
+  const w = Math.max(8, Math.round(canvas.width * k)), h = Math.max(8, Math.round(canvas.height * k));
+  const c = document.createElement('canvas'); c.width = w; c.height = h;
+  const x = c.getContext('2d', { willReadFrequently: true }); x.drawImage(canvas, 0, 0, w, h);
+  const d = x.getImageData(0, 0, w, h).data, n = w * h;
+  const g = new Float32Array(n);
+  for (let i = 0, j = 0; i < n; i++, j += 4) g[i] = 0.299 * d[j] + 0.587 * d[j + 1] + 0.114 * d[j + 2];
+  // Zona permitida (con la cámara, la credencial debe estar cerca del marco)
+  const permitido = new Uint8Array(n).fill(1);
+  if (hint) {
+    const m = 0.12, x0 = (hint.x - m) * w, x1 = (hint.x + hint.w + m) * w, y0 = (hint.y - m) * h, y1 = (hint.y + hint.h + m) * h;
+    for (let y = 0; y < h; y++) for (let xx = 0; xx < w; xx++) if (xx < x0 || xx > x1 || y < y0 || y > y1) permitido[y * w + xx] = 0;
+  }
+  // 1) Bordes (Sobel) → cerrar huecos → rellenar lo encerrado
+  const mag = new Float32Array(n);
+  for (let y = 1; y < h - 1; y++) for (let xx = 1; xx < w - 1; xx++) {
+    const i = y * w + xx;
+    const gx = g[i - w + 1] + 2 * g[i + 1] + g[i + w + 1] - g[i - w - 1] - 2 * g[i - 1] - g[i + w - 1];
+    const gy = g[i + w - 1] + 2 * g[i + w] + g[i + w + 1] - g[i - w - 1] - 2 * g[i - w] - g[i - w + 1];
+    mag[i] = Math.abs(gx) + Math.abs(gy);
+  }
+  const orden = Array.from(mag).filter((_, i) => i % 7 === 0).sort((a, b) => a - b);
+  const umbral = Math.max(60, orden[Math.floor(orden.length * 0.85)]);
+  let edge = new Uint8Array(n);
+  for (let i = 0; i < n; i++) edge[i] = mag[i] > umbral ? 1 : 0;
+  for (let it = 0; it < 2; it++) {
+    const e2 = new Uint8Array(n);
+    for (let y = 1; y < h - 1; y++) for (let xx = 1; xx < w - 1; xx++) {
+      const i = y * w + xx;
+      e2[i] = edge[i] | edge[i - 1] | edge[i + 1] | edge[i - w] | edge[i + w] | edge[i - w - 1] | edge[i - w + 1] | edge[i + w - 1] | edge[i + w + 1];
+    }
+    edge = e2;
+  }
+  const rellenar = mask => {   // lo que no se alcanza desde el borde de la foto queda "dentro"
+    const fuera = new Uint8Array(n), pila = [];
+    for (let xx = 0; xx < w; xx++) { pila.push(xx, (h - 1) * w + xx); }
+    for (let y = 0; y < h; y++) { pila.push(y * w, y * w + w - 1); }
+    while (pila.length) {
+      const i = pila.pop();
+      if (fuera[i] || mask[i]) continue;
+      fuera[i] = 1;
+      const xx = i % w;
+      if (xx > 0) pila.push(i - 1); if (xx < w - 1) pila.push(i + 1);
+      if (i >= w) pila.push(i - w); if (i < n - w) pila.push(i + w);
+    }
+    const r = new Uint8Array(n); for (let i = 0; i < n; i++) r[i] = fuera[i] ? 0 : 1; return r;
+  };
+  // 2) Brillo (Otsu): la credencial suele ser más clara u oscura que el fondo
+  const hist = new Array(256).fill(0); for (let i = 0; i < n; i++) hist[g[i] | 0]++;
+  let suma = 0; for (let t = 0; t < 256; t++) suma += t * hist[t];
+  let sB = 0, wB = 0, mejor = 0, otsu = 128;
+  for (let t = 0; t < 256; t++) {
+    wB += hist[t]; if (!wB) continue; const wF = n - wB; if (!wF) break;
+    sB += t * hist[t]; const mB = sB / wB, mF = (suma - sB) / wF, v = wB * wF * (mB - mF) ** 2;
+    if (v > mejor) { mejor = v; otsu = t; }
+  }
+  const claro = new Uint8Array(n), oscuro = new Uint8Array(n);
+  for (let i = 0; i < n; i++) { claro[i] = g[i] > otsu ? 1 : 0; oscuro[i] = 1 - claro[i]; }
+
+  // 3) Distinto al fondo: el color del fondo se toma del borde de la foto; la credencial completa
+  //    (incluida su franja de color) es lo que más se aleja de ese color
+  const borde = [];
+  const bw = Math.max(2, Math.round(Math.min(w, h) * 0.03));
+  for (let y = 0; y < h; y++) for (let xx = 0; xx < w; xx++)
+    if ((xx < bw || xx >= w - bw || y < bw || y >= h - bw) && (xx + y) % 2 === 0) borde.push(y * w + xx);
+  const med = ch => { const v = borde.map(i => d[i * 4 + ch]).sort((a, b) => a - b); return v[v.length >> 1]; };
+  const bg = [med(0), med(1), med(2)];
+  const dist = new Float32Array(n);
+  for (let i = 0, j = 0; i < n; i++, j += 4) dist[i] = Math.hypot(d[j] - bg[0], d[j + 1] - bg[1], d[j + 2] - bg[2]);
+  const hd = new Array(256).fill(0); for (let i = 0; i < n; i++) hd[Math.min(255, dist[i] | 0)]++;
+  let sd2 = 0; for (let t = 0; t < 256; t++) sd2 += t * hd[t];
+  let sB2 = 0, wB2 = 0, mejor2 = 0, otsuD = 20;
+  for (let t = 0; t < 256; t++) {
+    wB2 += hd[t]; if (!wB2) continue; const wF = n - wB2; if (!wF) break;
+    sB2 += t * hd[t]; const v = wB2 * wF * (sB2 / wB2 - (sd2 - sB2) / wF) ** 2;
+    if (v > mejor2) { mejor2 = v; otsuD = t; }
+  }
+  // Variación normal del fondo (vetas de madera, sombras suaves): lo que la supere es "otra cosa"
+  const db = borde.map(i => dist[i]).sort((a, b) => a - b);
+  const p98 = db[Math.floor(db.length * 0.98)] || 0;
+  const dilatar = m => { const r = new Uint8Array(n); for (let y = 1; y < h - 1; y++) for (let xx = 1; xx < w - 1; xx++) { const i = y * w + xx; r[i] = m[i] | m[i - 1] | m[i + 1] | m[i - w] | m[i + w]; } return r; };
+  const erosionar = m => { const r = new Uint8Array(n); for (let y = 1; y < h - 1; y++) for (let xx = 1; xx < w - 1; xx++) { const i = y * w + xx; r[i] = m[i] & m[i - 1] & m[i + 1] & m[i - w] & m[i + w]; } return r; };
+  const mascaraDist = umbral => {
+    let m = new Uint8Array(n);
+    for (let i = 0; i < n; i++) m[i] = dist[i] > umbral ? 1 : 0;
+    m = dilatar(erosionar(m));                       // quita puntitos sueltos del fondo
+    m = erosionar(erosionar(dilatar(dilatar(m))));   // une texto y foto en una sola pieza
+    return rellenar(m);
+  };
+  const distinto = mascaraDist(Math.max(12, otsuD));
+  const distintoSuave = mascaraDist(Math.max(10, Math.min(otsuD, p98 + 10)));
+
+  const evaluar = mask => {
+    for (let i = 0; i < n; i++) mask[i] &= permitido[i];
+    // componente más grande
+    const lab = new Int32Array(n); let mejorId = 0, mejorA = 0, id = 0;
+    for (let s0 = 0; s0 < n; s0++) {
+      if (!mask[s0] || lab[s0]) continue;
+      id++; let a = 0; const pila = [s0]; lab[s0] = id;
+      while (pila.length) {
+        const i = pila.pop(); a++;
+        const xx = i % w;
+        const vec = [xx > 0 ? i - 1 : -1, xx < w - 1 ? i + 1 : -1, i >= w ? i - w : -1, i < n - w ? i + w : -1];
+        for (const v of vec) if (v >= 0 && mask[v] && !lab[v]) { lab[v] = id; pila.push(v); }
+      }
+      if (a > mejorA) { mejorA = a; mejorId = id; }
+    }
+    if (mejorA < n * 0.08 || mejorA > n * 0.97) return null;
+    let tl = null, tr = null, br = null, bl = null, s1 = Infinity, s2 = -Infinity, d1 = -Infinity, d2 = Infinity;
+    for (let i = 0; i < n; i++) {
+      if (lab[i] !== mejorId) continue;
+      const xx = i % w, y = (i / w) | 0;
+      if (xx + y < s1) { s1 = xx + y; tl = { x: xx, y }; }
+      if (xx + y > s2) { s2 = xx + y; br = { x: xx, y }; }
+      if (xx - y > d1) { d1 = xx - y; tr = { x: xx, y }; }
+      if (xx - y < d2) { d2 = xx - y; bl = { x: xx, y }; }
+    }
+    let q = [tl, tr, br, bl];
+    // Afinar: ajustar una recta a cada lado del contorno (ignora esquinas redondeadas y manchas pegadas)
+    const contorno = [];
+    for (let i = 0; i < n; i++) {
+      if (lab[i] !== mejorId) continue;
+      const xx = i % w;
+      if (xx === 0 || xx === w - 1 || i < w || i >= n - w || lab[i - 1] !== mejorId || lab[i + 1] !== mejorId || lab[i - w] !== mejorId || lab[i + w] !== mejorId)
+        contorno.push({ x: xx, y: (i / w) | 0 });
+    }
+    const distSeg = (p, a, b) => { const vx = b.x - a.x, vy = b.y - a.y, L2 = vx * vx + vy * vy || 1; const t = clamp(((p.x - a.x) * vx + (p.y - a.y) * vy) / L2, 0.1, 0.9); return Math.hypot(p.x - a.x - t * vx, p.y - a.y - t * vy); };
+    const ajustar = pts => {   // recta por mínimos cuadrados totales: punto medio + dirección
+      let mx = 0, my = 0; pts.forEach(p => { mx += p.x; my += p.y; }); mx /= pts.length; my /= pts.length;
+      let sxx = 0, syy = 0, sxy = 0; pts.forEach(p => { const dx = p.x - mx, dy = p.y - my; sxx += dx * dx; syy += dy * dy; sxy += dx * dy; });
+      const ang = 0.5 * Math.atan2(2 * sxy, sxx - syy);
+      return { mx, my, dx: Math.cos(ang), dy: Math.sin(ang) };
+    };
+    const lados = [0, 1, 2, 3].map(k => {
+      const a = q[k], b = q[(k + 1) % 4], lim = Math.hypot(w, h) * 0.05;
+      let pts = contorno.filter(p => distSeg(p, a, b) < lim && [0, 1, 2, 3].every(j => j === k || distSeg(p, a, b) <= distSeg(p, q[j], q[(j + 1) % 4])));
+      if (pts.length < 8) return null;
+      let L = ajustar(pts);
+      for (let it = 0; it < 2; it++) {   // quitar los puntos que se alejan (manchas, sombras)
+        const res = pts.map(p => Math.abs((p.x - L.mx) * L.dy - (p.y - L.my) * L.dx));
+        const med = [...res].sort((x, y) => x - y)[res.length >> 1];
+        const quedan = pts.filter((_, i) => res[i] <= Math.max(1.5, med * 2.5));
+        if (quedan.length < 8) break;
+        pts = quedan; L = ajustar(pts);
+      }
+      return L;
+    });
+    if (lados.every(Boolean)) {
+      const cruce = (A, B) => { const den = A.dx * B.dy - A.dy * B.dx; if (Math.abs(den) < 1e-6) return null; const t = ((B.mx - A.mx) * B.dy - (B.my - A.my) * B.dx) / den; return { x: A.mx + t * A.dx, y: A.my + t * A.dy }; };
+      const nq = [cruce(lados[3], lados[0]), cruce(lados[0], lados[1]), cruce(lados[1], lados[2]), cruce(lados[2], lados[3])];
+      if (nq.every(p => p && Math.hypot(p.x - q[nq.indexOf(p)].x, p.y - q[nq.indexOf(p)].y) < Math.hypot(w, h) * 0.08)) q = nq;
+    }
+    [tl, tr, br, bl] = q;
+    const area = Math.abs(q.reduce((a, p, i) => { const r = q[(i + 1) % 4]; return a + p.x * r.y - r.x * p.y; }, 0)) / 2;
+    const L = (a, b) => Math.hypot(a.x - b.x, a.y - b.y);
+    const top = (L(tl, tr) + L(bl, br)) / 2, side = (L(tl, bl) + L(tr, br)) / 2;
+    if (!top || !side) return null;
+    const ratio = Math.max(top, side) / Math.min(top, side);
+    const lleno = mejorA / Math.max(area, 1);        // qué tan rectangular es
+    if (area < n * 0.08 || ratio < 1.2 || ratio > 2.1 || lleno < 0.8 || lleno > 1.25) return null;
+    // Si el "recorte" es la foto entera (las 4 esquinas pegadas a las orillas), no encontró nada
+    const pegadas = q.filter(p => (p.x < w * 0.02 || p.x > w * 0.98) && (p.y < h * 0.02 || p.y > h * 0.98)).length;
+    if (pegadas >= 3) return null;
+    const puntaje = (1 - Math.abs(ratio - RATIO_INE) / RATIO_INE) + (1 - Math.abs(1 - lleno)) + Math.min(area / n, 0.6);
+    return { quad: q.map(p => ({ x: clamp(p.x / w, 0, 1), y: clamp(p.y / h, 0, 1) })), puntaje };
+  };
+  const nombres = ['distintoSuave', 'distinto', 'bordes', 'claro', 'oscuro'];
+  const todos = [distintoSuave, distinto, rellenar(edge), claro, oscuro].map((m, k) => { const r = evaluar(m); if (r) r.metodo = nombres[k]; return r; });
+  if (window.DEBUG_DET) window.DEBUG_RES = todos.map((r, k) => r ? { m: r.metodo, p: +r.puntaje.toFixed(3), q: r.quad.map(p => [+p.x.toFixed(3), +p.y.toFixed(3)]) } : nombres[k] + ': nada');
+  const candidatos = todos.filter(Boolean);
+  // Consenso: si varios métodos encuentran el mismo contorno, ese es el bueno
+  const parecido = (A, B) => Math.max(...A.quad.map((p, i) => Math.hypot(p.x - B.quad[i].x, p.y - B.quad[i].y))) < 0.03;
+  candidatos.forEach(c => { c.votos = candidatos.filter(o => o !== c && parecido(c, o)).length; c.puntaje += 0.35 * c.votos; });
+  candidatos.sort((a, b) => b.puntaje - a.puntaje);
+  let elegido = candidatos[0] || null;
+  // Si otro contorno un poco más grande contiene al elegido, es la credencial completa
+  // (p. ej. el elegido dejó fuera la franja de color de arriba)
+  const areaQ = q => Math.abs(q.reduce((a, p, i) => { const r = q[(i + 1) % 4]; return a + p.x * r.y - r.x * p.y; }, 0)) / 2;
+  const dentro = (pt, q) => {   // punto dentro del cuadrilátero (con 1 % de tolerancia)
+    const c = { x: q.reduce((a, p) => a + p.x, 0) / 4, y: q.reduce((a, p) => a + p.y, 0) / 4 };
+    const qq = q.map(p => ({ x: c.x + (p.x - c.x) * 1.02, y: c.y + (p.y - c.y) * 1.02 }));
+    let signo = 0;
+    for (let i = 0; i < 4; i++) {
+      const a = qq[i], b = qq[(i + 1) % 4], cr = (b.x - a.x) * (pt.y - a.y) - (b.y - a.y) * (pt.x - a.x);
+      if (cr !== 0) { if (signo && Math.sign(cr) !== signo) return false; signo = Math.sign(cr); }
+    }
+    return true;
+  };
+  if (elegido) {
+    const A0 = areaQ(elegido.quad);
+    const mayores = candidatos.filter(c => c !== elegido && areaQ(c.quad) > A0 * 1.04 && areaQ(c.quad) <= A0 * 1.4 && elegido.quad.every(p => dentro(p, c.quad)));
+    if (mayores.length) elegido = mayores.sort((a, b) => areaQ(b.quad) - areaQ(a.quad))[0];
+  }
+  return elegido;
+}
+
+/* Enderezar: transforma el cuadrilátero en un rectángulo con proporción de INE */
+function homografia(P) {   // P: 4 puntos origen (px) que corresponden a las esquinas (0,0),(1,0),(1,1),(0,1)
+  const D = [[0, 0], [1, 0], [1, 1], [0, 1]], A = [], b = [];
+  for (let i = 0; i < 4; i++) {
+    const [u, v] = D[i], { x, y } = P[i];
+    A.push([u, v, 1, 0, 0, 0, -u * x, -v * x]); b.push(x);
+    A.push([0, 0, 0, u, v, 1, -u * y, -v * y]); b.push(y);
+  }
+  for (let c = 0; c < 8; c++) {   // eliminación gaussiana
+    let p = c; for (let r = c + 1; r < 8; r++) if (Math.abs(A[r][c]) > Math.abs(A[p][c])) p = r;
+    [A[c], A[p]] = [A[p], A[c]]; [b[c], b[p]] = [b[p], b[c]];
+    for (let r = 0; r < 8; r++) if (r !== c) { const f = A[r][c] / A[c][c]; for (let k = c; k < 8; k++) A[r][k] -= f * A[c][k]; b[r] -= f * b[c]; }
+  }
+  return b.map((v, i) => v / A[i][i]);
+}
+// Ordena las esquinas para que el lado largo quede arriba (credencial horizontal)
+function quadHorizontal(qPx) {
+  const L = (a, b) => Math.hypot(a.x - b.x, a.y - b.y);
+  const [tl, tr, br, bl] = qPx;
+  return (L(tl, tr) + L(bl, br)) >= (L(tl, bl) + L(tr, br)) ? [tl, tr, br, bl] : [bl, tl, tr, br];
+}
+function enderezar(src, quadNorm, outW, vuelta = ed.vuelta) {
+  let q = quadHorizontal(quadNorm.map(p => ({ x: p.x * src.width, y: p.y * src.height })));
+  // Recorta 1 % hacia adentro para no dejar orillas del fondo (esquinas redondeadas, sombra)
+  const cx = q.reduce((a, p) => a + p.x, 0) / 4, cy = q.reduce((a, p) => a + p.y, 0) / 4;
+  q = q.map(p => ({ x: cx + (p.x - cx) * 0.985, y: cy + (p.y - cy) * 0.985 }));
+  if (vuelta) q = [q[2], q[3], q[0], q[1]];   // girada 180°
+  const outH = Math.round(outW / RATIO_INE);
+  const [a, b, c, d, e, f, gg, hh] = homografia(q);
+  const sd = src.getContext('2d', { willReadFrequently: true }).getImageData(0, 0, src.width, src.height).data;
+  const out = document.createElement('canvas'); out.width = outW; out.height = outH;
+  const ox = out.getContext('2d'), img = ox.createImageData(outW, outH), od = img.data;
+  const SW = src.width, SH = src.height;
+  for (let y = 0; y < outH; y++) {
+    const v = (y + 0.5) / outH;
+    for (let x = 0; x < outW; x++) {
+      const u = (x + 0.5) / outW, den = gg * u + hh * v + 1;
+      let sx = (a * u + b * v + c) / den - 0.5, sy = (d * u + e * v + f) / den - 0.5;
+      sx = clamp(sx, 0, SW - 1.001); sy = clamp(sy, 0, SH - 1.001);
+      const x0 = sx | 0, y0 = sy | 0, fx = sx - x0, fy = sy - y0;
+      const i00 = (y0 * SW + x0) * 4, i10 = i00 + 4, i01 = i00 + SW * 4, i11 = i01 + 4, o = (y * outW + x) * 4;
+      for (let ch = 0; ch < 3; ch++)
+        od[o + ch] = (sd[i00 + ch] * (1 - fx) + sd[i10 + ch] * fx) * (1 - fy) + (sd[i01 + ch] * (1 - fx) + sd[i11 + ch] * fx) * fy;
+      od[o + 3] = 255;
+    }
+  }
+  ox.putImageData(img, 0, 0);
+  return out;
+}
+const anchoRealQuad = () => {
+  const W = ed.W, q = ed.quad.map(p => ({ x: p.x * W.width, y: p.y * W.height }));
+  const L = (a, b) => Math.hypot(a.x - b.x, a.y - b.y);
+  return Math.round(Math.max((L(q[0], q[1]) + L(q[3], q[2])) / 2, (L(q[0], q[3]) + L(q[1], q[2])) / 2) * ed.escala);
+};
+
+function edVuelta() { ed.vuelta = !ed.vuelta; edCalidad(); }
+
+function abrirEditor(lado, canvas, hint, origen, escala = 1) {
+  Object.assign(ed, { lado, base: canvas, rot: 0, flip: false, origen, escala, hint });
   $('edTitle').textContent = lado === 'frente' ? 'Ajusta el frente' : 'Ajusta el reverso';
   $('editor').classList.add('open');
-  requestAnimationFrame(() => edRender(crop ? { ...crop } : { ...CROP_DEF }));
+  requestAnimationFrame(() => edRender(true));
 }
 function cerrarEditor() { $('editor').classList.remove('open'); ed.drag = null; }
-function edRender(crop) {
+function edRender(detectar) {
   let c = rotar(ed.base, ed.rot);
   if (ed.flip) {
     const f = document.createElement('canvas'); f.width = c.width; f.height = c.height;
@@ -1482,7 +1804,13 @@ function edRender(crop) {
   ed.W = c;
   const cv = $('edCanvas'); cv.width = c.width; cv.height = c.height;
   cv.getContext('2d').drawImage(c, 0, 0);
-  ed.crop = crop || { ...CROP_DEF };
+  if (detectar) {
+    const hint = ed.rot === 0 && !ed.flip ? ed.hint : null;
+    const r = detectarCredencial(c, hint);
+    ed.detectado = !!r;
+    ed.quad = r ? r.quad : rectQuad(hint || { x: 0.06, y: 0.06, w: 0.88, h: 0.88 });
+    ed.vuelta = false;
+  }
   edLayout(); edCalidad();
 }
 function edLayout() {
@@ -1491,62 +1819,71 @@ function edLayout() {
   const w = cv.width * k, h = cv.height * k;
   cv.style.width = w + 'px'; cv.style.height = h + 'px';
   ed.disp = { w, h, x: (st.clientWidth - w) / 2, y: (st.clientHeight - h) / 2 };
-  edBox();
+  edDibujar();
 }
-function edBox() {
-  const b = $('edBox'), d = ed.disp, c = ed.crop;
-  b.style.left = d.x + c.x * d.w + 'px'; b.style.top = d.y + c.y * d.h + 'px';
-  b.style.width = c.w * d.w + 'px'; b.style.height = c.h * d.h + 'px';
+function edDibujar() {
+  const d = ed.disp, svg = $('edSvg');
+  svg.setAttribute('width', d.w); svg.setAttribute('height', d.h);
+  svg.style.left = d.x + 'px'; svg.style.top = d.y + 'px';
+  const pts = ed.quad.map(p => [p.x * d.w, p.y * d.h]);
+  $('edPoly').setAttribute('points', pts.map(p => p.join(',')).join(' '));
+  $('edFuera').setAttribute('d', `M-2000 -2000H${d.w + 2000}V${d.h + 2000}H-2000Z M${pts.map(p => p.join(' ')).join(' L')} Z`);
+  document.querySelectorAll('.qh').forEach((el, i) => { el.style.left = d.x + pts[i][0] + 'px'; el.style.top = d.y + pts[i][1] + 'px'; });
 }
-function edCrop(max) {
-  const W = ed.W, c = ed.crop;
-  return toCanvas(W, max, c.x * W.width, c.y * W.height, c.w * W.width, c.h * W.height);
-}
-const edAnchoReal = () => Math.round(ed.crop.w * ed.W.width * ed.escala);
 function edCalidad() {
-  const q = calidad(edCrop(480), edAnchoReal());
-  const el = $('edQ');
-  el.className = 'ed-q ' + (q.ok ? 'good' : 'bad');
-  el.textContent = q.ok ? '✓ Se ve bien' : '⚠ ' + q.issues[0];
-  $('edBox').classList.toggle('good', q.ok); $('edBox').classList.toggle('bad', !q.ok);
+  const prev = enderezar(ed.W, ed.quad, 480);
+  $('edPrev').getContext('2d').drawImage(prev, 0, 0, 480, 303);
+  const q = calidad(prev, anchoRealQuad());
+  const el = $('edQ'), st = $('edStage');
+  const ok = q.ok && ed.detectado;
+  el.className = 'ed-q ' + (ok ? 'good' : 'bad');
+  el.textContent = !ed.detectado ? '⚠ No se encontró la credencial: mueve los 4 puntos a sus esquinas'
+    : q.ok ? '✓ Credencial detectada y enderezada' : '⚠ ' + q.issues[0];
+  st.classList.toggle('good', ok); st.classList.toggle('bad', !ok);
 }
-function edRotar(d) { ed.rot = (ed.rot + d + 360) % 360; edRender(null); }
-function edVoltear() {
-  ed.flip = !ed.flip;
-  const c = ed.crop;
-  edRender({ ...c, x: 1 - c.x - c.w });
-}
-function edReset() { ed.rot = 0; ed.flip = false; edRender(ed.cropInicial ? { ...ed.cropInicial } : null); }
+function edRotar(dg) { ed.rot = (ed.rot + dg + 360) % 360; edRender(true); }
+function edVoltear() { ed.flip = !ed.flip; edRender(true); }
+function edReset() { edRender(true); toast(ed.detectado ? 'Credencial detectada' : 'No se pudo detectar: ajusta los puntos a mano', !ed.detectado); }
 function repetirEscaneo() {
   cerrarEditor();
   if (ed.origen === 'camara') startScan(ed.lado);
   else { scan.lado = ed.lado; $('ineFile').click(); }
 }
 function aceptarEditor() {
-  const c = edCrop(1400), w = edAnchoReal();
+  const ancho = clamp(anchoRealQuad(), 700, 1400);
+  const c = enderezar(ed.W, ed.quad, ancho);
   cerrarEditor();
-  procesarIne(ed.lado, c, w);
+  procesarIne(ed.lado, c, anchoRealQuad());
 }
-// Arrastrar el recuadro (mover) o sus esquinas/lados (recortar)
-$('edBox').addEventListener('pointerdown', e => {
+// Arrastrar una esquina, o todo el recuadro desde adentro
+function edInicio(e, i) {
   e.preventDefault();
-  ed.drag = { h: e.target.dataset.h || 'move', x0: e.clientX, y0: e.clientY, c0: { ...ed.crop } };
-  $('edBox').setPointerCapture(e.pointerId);
-});
-$('edBox').addEventListener('pointermove', e => {
+  ed.drag = { i, x0: e.clientX, y0: e.clientY, q0: ed.quad.map(p => ({ ...p })) };
+  e.target.setPointerCapture(e.pointerId);
+  ed.manual = true;
+}
+function edMover(e) {
   if (!ed.drag) return;
   const dx = (e.clientX - ed.drag.x0) / ed.disp.w, dy = (e.clientY - ed.drag.y0) / ed.disp.h;
-  let { x, y, w, h } = ed.drag.c0; const hd = ed.drag.h, m = 0.08;
-  if (hd === 'move') { x = clamp(x + dx, 0, 1 - w); y = clamp(y + dy, 0, 1 - h); }
-  else {
-    if (hd.includes('l')) { const nx = clamp(x + dx, 0, x + w - m); w += x - nx; x = nx; }
-    if (hd.includes('r')) w = clamp(w + dx, m, 1 - x);
-    if (hd.includes('t')) { const ny = clamp(y + dy, 0, y + h - m); h += y - ny; y = ny; }
-    if (hd.includes('b')) h = clamp(h + dy, m, 1 - y);
+  if (ed.drag.i === -1) {
+    const xs = ed.drag.q0.map(p => p.x), ys = ed.drag.q0.map(p => p.y);
+    const mx = clamp(dx, -Math.min(...xs), 1 - Math.max(...xs)), my = clamp(dy, -Math.min(...ys), 1 - Math.max(...ys));
+    ed.quad = ed.drag.q0.map(p => ({ x: p.x + mx, y: p.y + my }));
+  } else {
+    const p = ed.drag.q0[ed.drag.i];
+    ed.quad[ed.drag.i] = { x: clamp(p.x + dx, 0, 1), y: clamp(p.y + dy, 0, 1) };
   }
-  ed.crop = { x, y, w, h }; edBox();
+  edDibujar();
+}
+function edFin() { if (ed.drag) { ed.drag = null; ed.detectado = true; edCalidad(); } }
+document.querySelectorAll('.qh').forEach(el => {
+  el.addEventListener('pointerdown', e => edInicio(e, +el.dataset.i));
+  el.addEventListener('pointermove', edMover);
+  ['pointerup', 'pointercancel'].forEach(t => el.addEventListener(t, edFin));
 });
-['pointerup', 'pointercancel'].forEach(t => $('edBox').addEventListener(t, () => { if (ed.drag) { ed.drag = null; edCalidad(); } }));
+$('edPoly').addEventListener('pointerdown', e => edInicio(e, -1));
+$('edPoly').addEventListener('pointermove', edMover);
+['pointerup', 'pointercancel'].forEach(t => $('edPoly').addEventListener(t, edFin));
 window.addEventListener('resize', () => { if ($('editor').classList.contains('open')) edLayout(); });
 
 /* ---------- Lectura del texto (OCR) y detector de legibilidad ---------- */
@@ -1639,7 +1976,7 @@ async function procesarIne(lado, canvas0, srcWidth) {
   let canvas = rotar(canvas0, giros[0]);
   let data = canvas.toDataURL('image/jpeg', 0.85);
   const local = calidad(canvas, vertical && srcWidth ? Math.round(srcWidth * canvas0.height / canvas0.width) : srcWidth);
-  ine[lado] = { ...ine[lado], data, local, estado: null };
+  ine[lado] = { ...ine[lado], data, mini: miniDe(canvas), local, estado: null };
   setSlot(lado, { img: data, cls: 'has reading', st: 'Leyendo…', stCls: 'info' });
   showMsg('info', `<b class="t">Leyendo ${nombreLado} de la INE…</b>${vertical ? 'La foto venía vertical: se enderezó automáticamente. ' : ''}Esto toma unos segundos.`);
 
@@ -1671,7 +2008,7 @@ async function procesarIne(lado, canvas0, srcWidth) {
   }
   if (best) {
     canvas = best.c; data = best.d; texto = best.t; girada = best.giro !== 0;
-    ine[lado].data = data;
+    ine[lado].data = data; ine[lado].mini = miniDe(canvas);
     setSlot(lado, { img: data, cls: 'has reading', st: 'Leyendo…', stCls: 'info' });
   }
 
@@ -1822,8 +2159,8 @@ $('form').addEventListener('submit', async e => {
   const prev = editingId ? socios.find(x => x.id === editingId) : null;
   const est = estadoIneFinal(prev?.ineEstado);
   if (est !== undefined) data.ineEstado = est;
-  if (ine.frente.data) data.ineFrente = ine.frente.data;
-  if (ine.reverso.data) data.ineReverso = ine.reverso.data;
+  if (ine.frente.data) { data.ineFrente = ine.frente.data; data.ineFrenteMini = ine.frente.mini; }
+  if (ine.reverso.data) { data.ineReverso = ine.reverso.data; data.ineReversoMini = ine.reverso.mini; }
   if (newPhoto) data.fotoThumb = newPhoto;
   if (removePhoto) data.quitarFoto = true;
 

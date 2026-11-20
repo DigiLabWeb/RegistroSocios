@@ -68,3 +68,25 @@ La página es una **app instalable (PWA)**: se agrega a la pantalla de inicio y 
 - Los datos de los socios siempre se consultan en línea (no se guardan en el teléfono).
 
 Archivos de la app: `manifest.webmanifest`, `sw.js`, `icon-192.png`, `icon-512.png`, `icon-maskable-512.png` (deben estar junto a `index.html`).
+
+
+## Administración (menú ⚙ Administrar, solo administradores)
+**Campos del registro:** agrega campos extra al formulario de socios (Texto, Número, Fecha, Sí/No o Lista de opciones), márcalos como obligatorios, cámbiales el orden (↑ ↓), edítalos o elimínalos. Aparecen en el formulario como "3 · Datos adicionales" y en la ficha del socio.
+- Los campos fijos (N.º, nombre, teléfono, fecha de nacimiento, CURP, concesión, dirección, INE, foto) no se pueden quitar.
+- Si eliminas un campo, los datos que ya se habían capturado se conservan en la hoja (columna `extras`).
+
+**Usuarios:** agrega, edita (usuario, contraseña, rol) o elimina usuarios.
+- **Administrador:** hace todo. **Capturista:** registra y edita socios; no puede eliminarlos ni entrar a Administrar.
+- No puedes eliminar tu propio usuario y siempre debe quedar al menos un administrador.
+- Contraseñas de al menos 8 caracteres. Se guardan **cifradas** (no se pueden leer, solo reemplazar).
+
+**Mi cuenta:** cualquier usuario toca su nombre (arriba a la derecha) para cambiar su contraseña.
+
+**Nota:** la lista `USERS` de `Code.gs` solo se usa la primera vez para crear los usuarios iniciales. Después, todo se administra desde la app.
+
+
+## INE: recorte automático y carga rápida
+- Al tomar o subir la foto, la app **detecta las 4 esquinas** de la credencial, **quita el fondo** y la **endereza** (aunque esté en ángulo, parada o de lado). Los puntos se pueden mover a mano; abajo se ve "Así se guardará".
+- Si quedó de cabeza, el botón **Girar 180°** junto a la vista previa la voltea.
+- En la ficha del socio, las dos INE se muestran desde una **copia ligera** (una sola petición). La imagen en alta calidad solo se descarga al tocarla para ampliarla.
+- Las copias ligeras se guardan en la pestaña oculta **INE_vista** de la hoja. Las INE registradas antes se aligeran solas la primera vez que se abren.
