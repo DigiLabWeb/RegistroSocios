@@ -484,6 +484,8 @@
   .ic-t{flex:1;min-width:0;line-height:1.25}
   .ic-t b{display:block;font-size:.98rem}
   .ic-t span{font-size:.78rem;opacity:.85}
+  .listo .ic-btn,.install-chip.listo{animation:latido 1.6s ease-in-out 3}
+  @keyframes latido{50%{box-shadow:0 0 0 6px rgba(0,255,255,.35)}}
   .ic-btn{display:inline-flex;align-items:center;gap:6px;background:#fff;color:var(--ink);border-radius:999px;padding:9px 14px;font-weight:800;font-size:.85rem;flex-shrink:0;transition:transform .12s}
   .ic-btn:active{transform:scale(.95)}
   .ic-btn svg{color:var(--turq-deep)}
@@ -2482,6 +2484,7 @@ const esAndroid = () => /android/i.test(navigator.userAgent);
 // Qué navegador es, para dar los pasos exactos
 function navegador() {
   const ua = navigator.userAgent;
+  if (navigator.brave && typeof navigator.brave.isBrave === 'function') return 'brave';
   if (/Edg\//.test(ua)) return 'edge';
   if (/OPR\/|Opera/.test(ua)) return 'opera';
   if (/SamsungBrowser/.test(ua)) return 'samsung';
@@ -2513,6 +2516,7 @@ const ICO = {
   compartir: '<path d="M12 3v12"/><path d="m8 7 4-4 4 4"/><path d="M6 11H5a1 1 0 0 0-1 1v8a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-8a1 1 0 0 0-1-1h-1"/>',
   instalar: '<rect x="3" y="4" width="18" height="12" rx="2"/><path d="M8 20h8M12 16v4"/><path d="M12 7v5m-2.5-2.5L12 12l2.5-2.5"/>',
   '⋮': '<circle cx="12" cy="5" r="1.6" fill="currentColor"/><circle cx="12" cy="12" r="1.6" fill="currentColor"/><circle cx="12" cy="19" r="1.6" fill="currentColor"/>',
+  '≡': '<path d="M4 7h16M4 12h16M4 17h16"/>',
   '···': '<circle cx="5" cy="12" r="1.6" fill="currentColor"/><circle cx="12" cy="12" r="1.6" fill="currentColor"/><circle cx="19" cy="12" r="1.6" fill="currentColor"/>',
   agregar: '<rect x="4" y="4" width="16" height="16" rx="4"/><path d="M12 8v8M8 12h8"/>'
 };
@@ -2528,6 +2532,11 @@ function pasosInstalar() {
     'Elige <b>“Instalar app”</b> o <b>“Agregar a pantalla principal”</b>.', 'Confirma. El ícono <b>Socios</b> aparecerá con tus apps.'],
     nota: nav === 'firefox' ? 'Si no aparece la opción, ábrela en Chrome.' : '' };
   // Computadora
+  if (nav === 'brave') return { sub: 'Se abre en su propia ventana, con ícono en el Dock o en la barra de tareas.', pasos: [
+    `En la barra de direcciones, a la derecha, haz clic en el ícono de instalar ${ico('⊕')}.`,
+    `Si no lo ves: menú ${ico('≡')} (arriba a la derecha) → <b>“Guardar y compartir”</b> → <b>“Instalar página como aplicación…”</b>.`,
+    'Haz clic en <b>Instalar</b>. Quedará como <b>Socios</b> con tus apps.'],
+    nota: 'Si mantienes la página abierta un momento, el botón “Instalar” se activa para hacerlo con un solo clic.' };
   if (nav === 'chrome') return { sub: 'Se abre en su propia ventana, con ícono en el escritorio y en la barra de tareas.', pasos: [
     `En la barra de direcciones, arriba a la derecha, haz clic en el ícono de instalar ${ico('⊕')}.`,
     `Si no lo ves: menú ${ico('⋮')} → <b>“Transmitir, guardar y compartir”</b> → <b>“Instalar página como app…”</b>.`,
@@ -2544,11 +2553,21 @@ function pasosInstalar() {
     'Abre esta misma dirección en <b>Google Chrome</b> o <b>Microsoft Edge</b>.', 'Ahí aparecerá el botón <b>💻 Instalar app</b>.', 'Haz clic en <b>Instalar</b>.'],
     nota: nav === 'firefox' ? 'Firefox en computadora no permite instalar páginas como app.' : '' };
 }
-window.addEventListener('beforeinstallprompt', e => { e.preventDefault(); promptInstalar = e; mostrarInstalar(); });
+// El navegador puede avisar que ya se puede instalar en cualquier momento (a veces después de un rato o de un clic).
+// Cuando avisa, el botón se "enciende" y basta un clic para instalar.
+let pidioInstalar = false;
+window.addEventListener('beforeinstallprompt', e => {
+  e.preventDefault(); promptInstalar = e; yaInstalada = false; mostrarInstalar();
+  document.querySelectorAll('#instTop, #instLogin').forEach(el => el.classList.add('listo'));
+  if (pidioInstalar) {
+    closeOv('instOv');
+    toast('✓ Listo: toca “Instalar” y se instala con un clic');
+  }
+});
 window.addEventListener('appinstalled', () => { promptInstalar = null; yaInstalada = true; mostrarInstalar(); toast('✓ App instalada: búscala como “Socios”'); });
 async function instalarApp() {
   // Chrome y Edge avisan que se puede instalar unos segundos después de abrir la página: si aún no avisan, esperamos un momento
-  if (!promptInstalar && ['chrome', 'edge', 'samsung', 'opera'].includes(navegador()) && !esIOS()) {
+  if (!promptInstalar && ['chrome', 'edge', 'brave', 'samsung', 'opera'].includes(navegador()) && !esIOS()) {
     const btns = document.querySelectorAll('#instTop, #instLogin .ic-btn');
     btns.forEach(b => { b.dataset.t = b.innerHTML; b.disabled = true; b.innerHTML = 'Preparando…'; });
     for (let i = 0; i < 20 && !promptInstalar; i++) await new Promise(r => setTimeout(r, 150));
@@ -2562,9 +2581,10 @@ async function instalarApp() {
     promptInstalar = null; mostrarInstalar();
     return;
   }
+  pidioInstalar = true;
   const p = pasosInstalar();
   $('instTit').textContent = (esIOS() || esAndroid() ? 'Instala la app' : 'Instala la app en tu computadora');
-  $('instSub').innerHTML = p.sub + (navegador() === 'chrome' || navegador() === 'edge' ? '' : '<br><small>Este navegador no permite instalar con un solo clic; son 3 pasos.</small>');
+  $('instSub').innerHTML = p.sub + (['chrome', 'edge', 'brave'].includes(navegador()) ? '<br><small>Tu navegador aún no habilita la instalación con un clic. Puedes hacerlo así, o esperar un momento en la página y volver a tocar “Instalar”.</small>' : '<br><small>Este navegador no permite instalar con un solo clic; son 3 pasos.</small>');
   $('instPasos').innerHTML = p.pasos.map((t, i) => `<div><b>${i + 1}</b><span>${t}</span></div>`).join('');
   $('instNota').hidden = !p.nota; $('instNota').textContent = p.nota || '';
   openOv('instOv');
