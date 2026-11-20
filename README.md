@@ -64,6 +64,7 @@ Abre `index.html?demo` (gael / admin). Los datos se guardan solo en ese navegado
 La página es una **app instalable (PWA)**: se agrega a la pantalla de inicio y se abre a pantalla completa, con su ícono "Socios", sin barra del navegador.
 - **Android / Chrome / Edge:** botón **📲 Instalar app** (arriba en la página o debajo de "Entrar"), o menú ⋮ → *Instalar app*.
 - **iPhone / iPad (Safari):** botón **📲 Instalar** → muestra los pasos: Compartir ⬆︎ → *Agregar a pantalla de inicio* → Agregar.
+- **Computadora:** botón **💻 Instalar app**. En **Chrome** y **Edge** (Windows, Mac, Linux) se instala con un clic y queda con ícono en el escritorio/barra de tareas, en su propia ventana. En **Safari (Mac, macOS 14+)**: Archivo → *Agregar al Dock*. **Firefox** en computadora no permite instalar apps (usar Chrome o Edge).
 - Las actualizaciones que subas a GitHub llegan solas a la app la siguiente vez que se abra con internet.
 - Los datos de los socios siempre se consultan en línea (no se guardan en el teléfono).
 
